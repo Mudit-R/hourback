@@ -215,6 +215,25 @@ async function dispatchBatch(
         });
       } catch (err) {
         console.error(`[commentService] Local processing error for student ${s.id}:`, err);
+        try {
+          await db('generation_jobs').where({ id: jobId }).increment('failed', 1);
+          const job = await db('generation_jobs')
+            .where({ id: jobId })
+            .select('total', 'done', 'failed')
+            .first();
+          if (job) {
+            const done = Number(job.done) || 0;
+            const failed = Number(job.failed) || 0;
+            const total = Number(job.total) || 0;
+            if (done + failed >= total) {
+              await db('generation_jobs')
+                .where({ id: jobId })
+                .update({ status: done > 0 ? 'partial' : 'failed' });
+            }
+          }
+        } catch (e) {
+          console.error('[commentService] Error updating job failure state:', e);
+        }
       }
     }
   });
