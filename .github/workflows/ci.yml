@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+  # LLM always mocked in CI — no real API keys needed
+  LLM_PROVIDER: mock
+
+jobs:
+  # ── Lint ────────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Prettier
+        run: npm run format:check
+
+  # ── Unit Tests ───────────────────────────────────────────────────────────────
+  unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests (packages/llm, packages/shared, worker)
+        run: |
+          npm run test --workspace=packages/llm
+          npm run test --workspace=packages/shared
+          npm run test --workspace=apps/worker
+
+  # ── API Integration Tests (with real Postgres) ───────────────────────────────
+  api-integration:
+    name: API Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: hourback
+          POSTGRES_PASSWORD: hourback
+          POSTGRES_DB: hourback_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL: postgresql://hourback:hourback@localhost:5432/hourback_test
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run migrations
+        run: npm run db:migrate --workspace=apps/api
+
+      - name: Run seeds
+        run: npm run db:seed --workspace=apps/api
+
+      - name: Run API integration tests
+        run: npm run test --workspace=apps/api
+
+  # ── E2E Tests (Playwright + MockProvider) ───────────────────────────────────
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: hourback
+          POSTGRES_PASSWORD: hourback
+          POSTGRES_DB: hourback_e2e
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL: postgresql://hourback:hourback@localhost:5432/hourback_e2e
+      NODE_ENV: test
+      PORT: 4000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run migrations + seeds
+        run: |
+          npm run db:migrate --workspace=apps/api
+          npm run db:seed --workspace=apps/api
+
+      - name: Start API server (background)
+        run: npm run dev --workspace=apps/api &
+        env:
+          LLM_PROVIDER: mock
+
+      - name: Wait for API to be ready
+        run: npx wait-on http://localhost:4000/health --timeout 30000
+
+      - name: Build web app
+        run: npm run build --workspace=apps/web
+
+      - name: Run Playwright tests
+        run: npm run test:e2e --workspace=apps/web
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7

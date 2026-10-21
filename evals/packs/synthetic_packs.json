@@ -1,0 +1,136 @@
+[
+  {
+    "studentToken": "STUDENT_1",
+    "tone": "warm",
+    "length": "medium",
+    "periodName": "Semester 1 2024/25",
+    "subject": "Mathematics",
+    "grade": "Grade 5",
+    "items": [
+      {
+        "id": "e0000000-0000-0000-0000-000000000001",
+        "type": "assessment_result",
+        "content": "Applied the area model strategy to solve multi-digit multiplication problems independently.",
+        "criterionName": "Problem-Solving Strategies",
+        "level": 6,
+        "maxLevel": 8
+      },
+      {
+        "id": "e0000000-0000-0000-0000-000000000002",
+        "type": "observation",
+        "content": "Demonstrated strong leadership and patience when guiding peers during group survey data analysis.",
+        "tag": "collaboration"
+      }
+    ]
+  },
+  {
+    "studentToken": "STUDENT_2",
+    "tone": "encouraging",
+    "length": "short",
+    "periodName": "Semester 1 2024/25",
+    "subject": "Mathematics",
+    "grade": "Grade 5",
+    "items": [
+      {
+        "id": "e0000000-0000-0000-0000-000000000003",
+        "type": "assessment_result",
+        "content": "Demonstrated foundational understanding of fraction decomposition with visual manipulatives.",
+        "criterionName": "Conceptual Understanding",
+        "level": 4,
+        "maxLevel": 8
+      },
+      {
+        "id": "e0000000-0000-0000-0000-000000000004",
+        "type": "observation",
+        "content": "Persisted through challenging word problems and regularly asked clarifying questions.",
+        "tag": "attitude"
+      }
+    ]
+  },
+  {
+    "studentToken": "STUDENT_3",
+    "tone": "formal",
+    "length": "medium",
+    "periodName": "Semester 1 2024/25",
+    "subject": "English Language Arts",
+    "grade": "Grade 5",
+    "items": [
+      {
+        "id": "e0000000-0000-0000-0000-000000000005",
+        "type": "assessment_result",
+        "content": "Constructed persuasive arguments supported by textual evidence from multiple primary sources.",
+        "criterionName": "Reading Comprehension",
+        "level": 7,
+        "maxLevel": 8
+      },
+      {
+        "id": "e0000000-0000-0000-0000-000000000006",
+        "type": "observation",
+        "content": "Consistently offered constructive and respectful feedback during peer editing workshops.",
+        "tag": "collaboration"
+      }
+    ]
+  },
+  {
+    "studentToken": "STUDENT_4",
+    "tone": "warm",
+    "length": "long",
+    "periodName": "Semester 1 2024/25",
+    "subject": "Science & Inquiry",
+    "grade": "Grade 5",
+    "items": [
+      {
+        "id": "e0000000-0000-0000-0000-000000000007",
+        "type": "assessment_result",
+        "content": "Designed a controlled experiment with isolated variables to test ecosystem salinity.",
+        "criterionName": "Research & Inquiry Skills",
+        "level": 8,
+        "maxLevel": 8
+      },
+      {
+        "id": "e0000000-0000-0000-0000-000000000008",
+        "type": "observation",
+        "content": "Formulated insightful research questions during the tuning-in phase of the energy conservation unit.",
+        "tag": "inquiry"
+      },
+      {
+        "id": "e0000000-0000-0000-0000-000000000009",
+        "type": "observation",
+        "content": "Shared laboratory findings clearly with visual charts during the school exhibition.",
+        "tag": "communication"
+      },
+      {
+        "id": "e0000000-0000-0000-0000-000000000010",
+        "type": "assessment_result",
+        "content": "Demonstrated meticulous lab safety protocols and self-management throughout the semester.",
+        "criterionName": "Self-Management",
+        "level": 7,
+        "maxLevel": 8
+      }
+    ]
+  },
+  {
+    "studentToken": "STUDENT_5",
+    "tone": "warm",
+    "length": "medium",
+    "periodName": "Semester 1 2024/25",
+    "subject": "English Language Arts",
+    "grade": "Grade 5",
+    "items": [
+      {
+        "id": "e0000000-0000-0000-0000-000000000011",
+        "type": "assessment_result",
+        "content": "Crafted an evocative narrative with dynamic character development and sensory imagery.",
+        "criterionName": "Writing Craft & Voice",
+        "level": 6,
+        "maxLevel": 8
+      },
+      {
+        "id": "e0000000-0000-0000-0000-000000000012",
+        "type": "observation",
+        "content": "Demonstrated significant growth in self-editing for sentence variety and transition words.",
+        "tag": "writing"
+      }
+    ]
+  }
+]

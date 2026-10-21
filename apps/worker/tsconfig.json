@@ -1,0 +1,1 @@
+{ "extends": "../../tsconfig.json", "compilerOptions": { "outDir": "dist", "rootDir": "src", "paths": { "@hourback/shared": ["../../packages/shared/src/index.ts"], "@hourback/llm": ["../../packages/llm/src/index.ts"] } }, "include": ["src/**/*"] }

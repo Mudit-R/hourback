@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hourback_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hourback
+      POSTGRES_PASSWORD: hourback
+      POSTGRES_DB: hourback
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hourback']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  localstack:
+    image: localstack/localstack:3.4
+    container_name: hourback_localstack
+    restart: unless-stopped
+    ports:
+      - '4566:4566'
+    environment:
+      SERVICES: sqs
+      DEFAULT_REGION: us-east-1
+      EAGER_SERVICE_LOADING: 1
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - ./localstack-init:/etc/localstack/init/ready.d
+    healthcheck:
+      test: ['CMD-SHELL', 'awslocal sqs list-queues || exit 1']
+      interval: 10s
+      timeout: 10s
+      retries: 12
+
+volumes:
+  postgres_data:
+  localstack_data:

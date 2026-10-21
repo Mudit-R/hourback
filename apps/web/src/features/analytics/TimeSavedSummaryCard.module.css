@@ -1,0 +1,142 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.metricBadge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-3);
+}
+
+.statBox {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.statHighlight {
+  color: #10b981;
+}
+
+.comparisonBarWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.barRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 12px;
+}
+
+.barLabel {
+  width: 90px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.barTrack {
+  flex: 1;
+  height: 8px;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.barFillManual {
+  height: 100%;
+  background: #f59e0b;
+  border-radius: var(--radius-full);
+}
+
+.barFillAssisted {
+  height: 100%;
+  background: #10b981;
+  border-radius: var(--radius-full);
+}
+
+.barValue {
+  width: 50px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-3);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.logManualBtn {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.logManualBtn:hover {
+  color: #ffffff;
+}

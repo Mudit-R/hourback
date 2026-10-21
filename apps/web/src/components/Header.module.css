@@ -1,0 +1,131 @@
+.header {
+  height: 60px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-6);
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.leftArea {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  text-decoration: none;
+}
+
+.logoIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary), #818cf8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+.brandName {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.03em;
+}
+
+.brandBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-hover);
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.classSelectorWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-left: var(--spacing-4);
+}
+
+.select {
+  padding: 6px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.rightArea {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.analyticsToggleBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.analyticsToggleBtn:hover, .analyticsToggleBtnActive {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary-hover);
+}
+
+.teacherBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 4px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-2);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.teacherAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
