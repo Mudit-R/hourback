@@ -1,131 +1,185 @@
+/* ── Header — Linear-style top bar ── */
+
 .header {
-  height: 60px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  height: 48px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--spacing-6);
+  padding: 0 var(--s4);
   flex-shrink: 0;
-  z-index: 20;
+  z-index: 100;
+  user-select: none;
 }
 
+/* ── Left ── */
 .leftArea {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
+  gap: var(--s3);
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: 7px;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
-.logoIcon {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--color-primary), #818cf8);
+.logoMark {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-sm);
+  background: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 800;
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  color: #fff;
+  flex-shrink: 0;
 }
 
 .brandName {
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--color-text-primary);
-  letter-spacing: -0.03em;
-}
-
-.brandBadge {
-  font-size: 10px;
+  font-size: var(--fs-14);
   font-weight: 700;
-  padding: 2px 6px;
-  background: var(--color-primary-subtle);
-  color: var(--color-primary-hover);
-  border-radius: var(--radius-full);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  letter-spacing: -0.025em;
 }
 
+/* Divider between logo and selectors */
+.headerSep {
+  width: 1px;
+  height: 18px;
+  background: var(--border-default);
+  flex-shrink: 0;
+}
+
+/* ── Class / Period Selectors ── */
 .classSelectorWrapper {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  margin-left: var(--spacing-4);
+  gap: var(--s1);
+}
+
+.selectWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.selectIcon {
+  position: absolute;
+  left: 8px;
+  color: var(--text-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
 }
 
 .select {
-  padding: 6px 12px;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-primary);
-  font-size: 13px;
+  padding: 4px 8px 4px 26px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text-secondary);
+  font-size: var(--fs-12);
   font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--transition-fast);
+  transition: all var(--t-fast);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2355555f' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 22px;
+}
+
+.select:hover {
+  background: var(--bg-overlay);
+  border-color: var(--border-default);
+  color: var(--text-primary);
 }
 
 .select:focus {
   outline: none;
-  border-color: var(--color-primary);
+  background: var(--bg-overlay);
+  border-color: var(--accent);
+  color: var(--text-primary);
 }
 
+/* Select option dark fix */
+.select option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* ── Right Area ── */
 .rightArea {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: var(--s2);
 }
 
+/* ── Analytics Toggle ── */
 .analyticsToggleBtn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  transition: all var(--transition-fast);
+  gap: 5px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  font-size: var(--fs-12);
+  font-weight: 500;
+  transition: all var(--t-fast);
   cursor: pointer;
+  letter-spacing: 0.01em;
 }
 
-.analyticsToggleBtn:hover, .analyticsToggleBtnActive {
-  background: var(--color-primary-subtle);
-  border-color: var(--color-primary);
-  color: var(--color-primary-hover);
+.analyticsToggleBtn:hover {
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
 }
 
+.analyticsToggleBtnActive {
+  background: var(--accent-subtle) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-hover) !important;
+}
+
+/* ── Teacher Badge ── */
 .teacherBadge {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  padding: 4px 8px;
-  border-radius: var(--radius-full);
-  background: var(--color-surface-2);
-  font-size: 12px;
-  color: var(--color-text-secondary);
+  gap: var(--s2);
+  padding: 3px 8px 3px 4px;
+  border-radius: var(--r-full);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--fs-12);
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: default;
+  transition: all var(--t-fast);
+}
+
+.teacherBadge:hover {
+  border-color: var(--border-default);
 }
 
 .teacherAvatar {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #5e6ad2, #8b93f8);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
+  flex-shrink: 0;
 }

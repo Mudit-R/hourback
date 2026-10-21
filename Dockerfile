@@ -1,45 +1,31 @@
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Copy package manifests
-COPY package*.json ./
-COPY packages/shared/package*.json ./packages/shared/
-COPY packages/llm/package*.json ./packages/llm/
-COPY apps/worker/package*.json ./apps/worker/
-COPY apps/api/package*.json ./apps/api/
-COPY apps/web/package*.json ./apps/web/
-
-# Install dependencies
-RUN npm ci
-
-# Copy source trees and config
-COPY tsconfig.json ./
-COPY packages ./packages
-COPY apps ./apps
-
-# Build all packages and web bundle
-RUN npm run build
-
-# --- Production Runtime Image ---
-FROM node:20-alpine AS runner
+# ─── Runtime-only image — pre-built dist folders are copied directly ───────
+# Build locally first: npm run build
+# Then deploy: gcloud run deploy --source .
+FROM node:20-alpine
 
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=8080
 
+# Copy root manifest (needed for workspaces resolution)
 COPY package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder /app/packages/shared/package.json ./packages/shared/package.json
-COPY --from=builder /app/packages/llm/dist ./packages/llm/dist
-COPY --from=builder /app/packages/llm/package.json ./packages/llm/package.json
-COPY --from=builder /app/apps/worker/dist ./apps/worker/dist
-COPY --from=builder /app/apps/worker/package.json ./apps/worker/package.json
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
-COPY --from=builder /app/apps/web/dist ./apps/web/dist
+
+# Copy each package manifest so npm install resolves workspace deps
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/llm/package.json    ./packages/llm/
+COPY apps/worker/package.json     ./apps/worker/
+COPY apps/api/package.json        ./apps/api/
+COPY apps/web/package.json        ./apps/web/
+
+# Install ONLY production dependencies (no dev toolchain)
+RUN npm ci --omit=dev --ignore-scripts
+
+# Copy pre-built dist artifacts (built locally via `npm run build`)
+COPY packages/shared/dist ./packages/shared/dist
+COPY packages/llm/dist    ./packages/llm/dist
+COPY apps/worker/dist     ./apps/worker/dist
+COPY apps/api/dist        ./apps/api/dist
+COPY apps/web/dist        ./apps/web/dist
 
 EXPOSE 8080
 
