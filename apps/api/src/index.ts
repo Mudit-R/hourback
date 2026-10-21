@@ -3,6 +3,8 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -18,7 +20,7 @@ const PORT = parseInt(process.env['PORT'] ?? '4000', 10);
 async function bootstrap(): Promise<void> {
   const app = express();
 
-  app.use(cors({ origin: process.env['CORS_ORIGIN'] ?? 'http://localhost:3000', credentials: true }));
+  app.use(cors({ origin: true, credentials: true }));
   app.use(express.json());
 
   const schema = makeExecutableSchema({ typeDefs, resolvers });
@@ -57,6 +59,16 @@ async function bootstrap(): Promise<void> {
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
+
+  // In production (e.g. Cloud Run), serve the compiled React SPA
+  const webDistPath = path.resolve(__dirname, '../../web/dist');
+  if (fs.existsSync(webDistPath)) {
+    app.use(express.static(webDistPath));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/graphql') || req.path === '/health') return next();
+      res.sendFile(path.join(webDistPath, 'index.html'));
+    });
+  }
 
   app.listen(PORT, () => {
     console.warn(`HourBack API ready at http://localhost:${PORT}/graphql`);
