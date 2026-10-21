@@ -201,40 +201,51 @@ async function dispatchBatch(
     }
   }
 
-  // Local async worker fallback (zero AWS dependency)
+  // Local async worker fallback (zero AWS dependency) - process in parallel batches of 5
   setImmediate(async () => {
-    for (const s of students) {
-      try {
-        await processMessageData({
-          jobId,
-          studentId: s.id,
-          periodId,
-          tone,
-          length,
-          attempt: 1,
-        });
-      } catch (err) {
-        console.error(`[commentService] Local processing error for student ${s.id}:`, err);
-        try {
-          await db('generation_jobs').where({ id: jobId }).increment('failed', 1);
-          const job = await db('generation_jobs')
-            .where({ id: jobId })
-            .select('total', 'done', 'failed')
-            .first();
-          if (job) {
-            const done = Number(job.done) || 0;
-            const failed = Number(job.failed) || 0;
-            const total = Number(job.total) || 0;
-            if (done + failed >= total) {
-              await db('generation_jobs')
-                .where({ id: jobId })
-                .update({ status: done > 0 ? 'partial' : 'failed' });
+    const BATCH_SIZE = 5;
+    for (let i = 0; i < students.length; i += BATCH_SIZE) {
+      const slice = students.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        slice.map(async (s) => {
+          try {
+            await processMessageData({
+              jobId,
+              studentId: s.id,
+              periodId,
+              tone,
+              length,
+              attempt: 1,
+            });
+          } catch (err) {
+            console.error(`[commentService] Local processing error for student ${s.id}:`, err);
+            try {
+              await db('generation_jobs').where({ id: jobId }).increment('failed', 1);
+            } catch (e) {
+              console.error('[commentService] Error updating job failure state:', e);
             }
           }
-        } catch (e) {
-          console.error('[commentService] Error updating job failure state:', e);
+        }),
+      );
+    }
+
+    try {
+      const job = await db('generation_jobs')
+        .where({ id: jobId })
+        .select('total', 'done', 'failed')
+        .first();
+      if (job) {
+        const done = Number(job.done) || 0;
+        const failed = Number(job.failed) || 0;
+        const total = Number(job.total) || 0;
+        if (done + failed >= total) {
+          await db('generation_jobs')
+            .where({ id: jobId })
+            .update({ status: failed === 0 ? 'completed' : done > 0 ? 'partial' : 'failed' });
         }
       }
+    } catch (e) {
+      console.error('[commentService] Error finalizing job status:', e);
     }
   });
 }
