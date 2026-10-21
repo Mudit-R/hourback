@@ -12,8 +12,11 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   }
 });
 
+const graphqlUri =
+  (typeof process !== 'undefined' && process.env?.['REACT_APP_GRAPHQL_URL']) || '/graphql';
+
 const httpLink = createHttpLink({
-  uri: process.env['REACT_APP_GRAPHQL_URL'] ?? '/graphql',
+  uri: graphqlUri,
   headers: {
     // Teacher auth header — set after login flow (Phase 5 uses a seed teacher ID)
     'x-teacher-id': localStorage.getItem('teacherId') ?? '',

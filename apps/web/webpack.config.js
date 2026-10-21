@@ -1,10 +1,12 @@
 const path = require('path');
+const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const isDev = process.env.NODE_ENV !== 'production';
 
 module.exports = {
+  mode: isDev ? 'development' : 'production',
   entry: './src/index.tsx',
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -31,13 +33,23 @@ module.exports = {
           isDev ? 'style-loader' : MiniCssExtractPlugin.loader,
           {
             loader: 'css-loader',
-            options: { modules: { localIdentName: isDev ? '[local]__[hash:base64:5]' : '[hash:base64]' } },
+            options: {
+              modules: {
+                auto: true,
+                namedExport: false,
+                exportLocalsConvention: 'asIs',
+                localIdentName: isDev ? '[name]__[local]--[hash:base64:5]' : '[hash:base64]',
+              },
+            },
           },
         ],
       },
     ],
   },
   plugins: [
+    new webpack.DefinePlugin({
+      'process.env.REACT_APP_GRAPHQL_URL': JSON.stringify(process.env.REACT_APP_GRAPHQL_URL || '/graphql'),
+    }),
     new HtmlWebpackPlugin({
       template: './public/index.html',
       title: 'HourBack — AI Progress Report Copilot',
