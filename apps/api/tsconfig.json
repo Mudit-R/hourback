@@ -2,12 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "baseUrl": ".",
-    "paths": {
-      "@hourback/shared": ["../../packages/shared/src/index.ts"],
-      "@hourback/llm": ["../../packages/llm/src/index.ts"],
-      "@hourback/worker": ["../../apps/worker/src/index.ts"]
-    }
+    "paths": {}
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
