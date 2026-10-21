@@ -1,10 +1,10 @@
-# Hi, I'm Mudit Rungta 👋
+# Hi, I'm Mudit Rungta
 **Full-Stack Software Engineer & Final-Year B.Tech CS Student**  
-📍 India | [LinkedIn](https://linkedin.com) | [Portfolio](https://muditrungta.com) | [Email](mailto:mohit@example.com)
+India | [LinkedIn](https://linkedin.com) | [Portfolio](https://muditrungta.com) | [Email](mailto:mohit@example.com)
 
 ---
 
-## 🚀 Featured Project: HourBack (AI Progress Report Copilot for Teachers)
+## Featured Project: HourBack (AI Progress Report Copilot for Teachers)
 > *Engineered to save K-12 teachers 10+ hours a week by generating citation-grounded, deficit-free progress report comments directly from rubric assessments and classroom observations.*
 
 ### Key Architecture Highlights:
@@ -16,11 +16,11 @@
 
 **Tech Stack**: TypeScript, React 18, Redux Toolkit, Apollo Client/Server, Express, PostgreSQL 16, Knex, Docker, AWS SQS, LocalStack, Jest, Playwright, Webpack 5.
 
-👉 **[Explore the Repository & Benchmarks →](https://github.com/muditrungta/hourback)**
+**[Explore the Repository & Benchmarks →](https://github.com/muditrungta/hourback)**
 
 ---
 
-## 🛠️ Technical Skills
+## Technical Skills
 - **Languages**: TypeScript, JavaScript (ES6+), Java, SQL, Python
 - **Frontend**: React 18, Redux Toolkit, Apollo Client, Webpack 5, CSS Modules, Tailwind CSS, Jest, Playwright
 - **Backend & Cloud**: Node.js, Express, Apollo Server (GraphQL), Spring Boot, PostgreSQL, Knex, Redis, Kafka, AWS (SQS, Lambda, CloudWatch), Docker

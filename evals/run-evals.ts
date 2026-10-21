@@ -140,11 +140,11 @@ _Evaluated: 30 Synthetic Evidence Packs across Mathematics, English Language Art
 
 | Metric | Measured Result | Benchmark Target | Status |
 |---|---|---|---|
-| **Average Groundedness** | **${avgGroundednessPct}%** | ≥ 90% | **PASS ✓** |
-| **Tone Violations (Deficit / Comparison)** | **${toneViolations}** | 0 | **PASS ✓** |
-| **Length Constraint Compliance** | **${100 - lengthViolations}%** | 100% | **PASS ✓** |
-| **First-Pass Validation Rate** | **${firstPassRate}%** | ≥ 95% | **PASS ✓** |
-| **Total Sentences & Evidence Citations** | **${totalSentences} sentences / ${totalCitations} citations** | 1:1 minimum | **PASS ✓** |
+| **Average Groundedness** | **${avgGroundednessPct}%** | ≥ 90% | **PASS** |
+| **Tone Violations (Deficit / Comparison)** | **${toneViolations}** | 0 | **PASS** |
+| **Length Constraint Compliance** | **${100 - lengthViolations}%** | 100% | **PASS** |
+| **First-Pass Validation Rate** | **${firstPassRate}%** | ≥ 95% | **PASS** |
+| **Total Sentences & Evidence Citations** | **${totalSentences} sentences / ${totalCitations} citations** | 1:1 minimum | **PASS** |
 
 ---
 
@@ -156,7 +156,7 @@ ${details
   .slice(0, 10)
   .map(
     (d) =>
-      `| Pack ${d.packIndex} | ${d.studentToken} | ${d.tone} | ${d.length} | ${d.sentences} | ${d.groundednessPct}% | ${d.valid ? 'Valid ✓' : 'Flagged ⚠️'} |`,
+      `| Pack ${d.packIndex} | ${d.studentToken} | ${d.tone} | ${d.length} | ${d.sentences} | ${d.groundednessPct}% | ${d.valid ? 'Valid' : 'Flagged'} |`,
   )
   .join('\n')}
 

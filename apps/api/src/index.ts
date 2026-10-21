@@ -59,7 +59,7 @@ async function bootstrap(): Promise<void> {
   });
 
   app.listen(PORT, () => {
-    console.warn(`🚀 HourBack API ready at http://localhost:${PORT}/graphql`);
+    console.warn(`HourBack API ready at http://localhost:${PORT}/graphql`);
   });
 }
 

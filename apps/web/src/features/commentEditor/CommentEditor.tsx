@@ -198,7 +198,12 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
   if (!comment) {
     return (
       <div className={styles.emptyState} id="comment-editor-empty">
-        <div className={styles.emptyIcon} aria-hidden="true">✍️</div>
+        <div className={styles.emptyIcon} aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+        </div>
         <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text-primary)' }}>
           No Comment Draft Yet
         </h3>
@@ -235,13 +240,13 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
                 }`}
                 title="Percentage of evidence items cited in this comment"
               >
-                ✓ {groundedPct}% Grounded
+                {groundedPct}% Grounded
               </span>
             )}
             {comment.generationMs && (
-              <span className={styles.metaPill}>⚡ {(comment.generationMs / 1000).toFixed(1)}s</span>
+              <span className={styles.metaPill}>{(comment.generationMs / 1000).toFixed(1)}s</span>
             )}
-            {comment.model && <span className={styles.metaPill}>🤖 {comment.model}</span>}
+            {comment.model && <span className={styles.metaPill}>{comment.model}</span>}
           </div>
         </div>
 
@@ -302,12 +307,12 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
                   <div className={styles.citationsList}>
                     {s.citations.map((c, ci) => (
                       <span key={ci} className={styles.citationTag}>
-                        🔗 {c.sourceType === 'assessment_result' ? 'Assessment' : 'Observation'}
+                        {c.sourceType === 'assessment_result' ? 'Assessment' : 'Observation'}
                       </span>
                     ))}
                     {s.citations.length === 0 && (
                       <span className={styles.citationTag} style={{ color: 'var(--color-danger)' }}>
-                        ⚠️ No citation
+                        Uncited
                       </span>
                     )}
                   </div>
@@ -355,7 +360,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
             disabled={regenerating}
             id="btn-regenerate-comment"
           >
-            {regenerating ? 'Regenerating...' : '🔄 Regenerate'}
+            {regenerating ? 'Regenerating...' : 'Regenerate'}
           </button>
 
           <button
@@ -375,7 +380,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
             disabled={approving}
             id="btn-approve-comment"
           >
-            {approving ? 'Approving...' : '✓ Approve Comment'}
+            {approving ? 'Approving...' : 'Approve Comment'}
           </button>
         </div>
       </div>

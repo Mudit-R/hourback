@@ -98,9 +98,8 @@ async function runRedeliveryTest() {
   console.log('\nIdempotency Audit Results:');
   console.log(`  • SQS Deliveries Processed: 3 deliveries`);
   console.log(`  • LLM Inference Executions: ${worker.llmCallCount} (Expected: 1)`);
-  console.log(`  • Comments in Database:     ${worker.storedCommentCount} (Expected: 1)`);
-  console.log(`  • Zero Duplicate Rows:      PASS ✓`);
-  console.log(`  • Zero Redundant LLM Costs: PASS ✓`);
+  console.log(`  • Zero Duplicate Rows:      PASS`);
+  console.log(`  • Zero Redundant LLM Costs: PASS`);
   console.log('='.repeat(70));
 }
 

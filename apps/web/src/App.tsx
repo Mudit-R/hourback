@@ -101,7 +101,10 @@ export const App: React.FC = () => {
           ) : (
             <div className={styles.emptySelection} id="empty-roster-selection">
               <div className={styles.emptySelectionIcon} aria-hidden="true">
-                📋
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                </svg>
               </div>
               <h2 className={styles.emptyTitle}>Select a student to begin review</h2>
               <p className={styles.emptyText}>
@@ -110,9 +113,9 @@ export const App: React.FC = () => {
               </p>
 
               <div className={styles.featurePills}>
-                <span className={styles.featurePill}>✓ 100% Citation Grounded</span>
-                <span className={styles.featurePill}>🔒 PII Anonymized</span>
-                <span className={styles.featurePill}>⚡ Async SQS Queue</span>
+                <span className={styles.featurePill}>100% Citation Grounded</span>
+                <span className={styles.featurePill}>PII Anonymized</span>
+                <span className={styles.featurePill}>Async Queue Pipeline</span>
               </div>
             </div>
           )}

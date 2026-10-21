@@ -1,4 +1,4 @@
-# HourBack ⏱️
+# HourBack
 > **AI-powered progress report comment copilot with a teacher firmly in the loop.**  
 > *Reduces semester report comment writing from 7–10 minutes to under 1.5 minutes per student by generating citation-grounded, deficit-free drafts paired with live classroom evidence.*
 
@@ -10,31 +10,31 @@
 
 ---
 
-## 📽️ Demo Preview
+## Demo Preview
 ```text
 +-----------------------------------------------------------------------------------------------+
-| HourBack Copilot  [Grade 5A - Mathematics v] [Semester 1 v]     [📊 Time Saved: 85% ] (Anita) |
+| HourBack Copilot  [Grade 5A - Mathematics v] [Semester 1 v]     [ Time Saved: 85% ]   (Anita) |
 +-------------------------------+-----------------------------------+---------------------------+
 | Student Roster (30)           | Draft Review (Aarav Sharma)       | Student Evidence Pack     |
 | [Search students...]          | Tone: [Warm v]  Length: [Medium v]| [Criteria Assessment]     |
 | • Aarav Sharma      [Draft]   |                                   | • Problem Solving: L6/8 * |
 | • Priya Nair        [Approved]| "Aarav demonstrated strong        |   "Applied area model     |
 | • Rohan Mehta       [Pending] | engagement when multiplying       |   strategy independently" |
-| • Ananya Iyer       [Draft]   | fractions." [🔗 Criterion L6]     |                           |
+| • Ananya Iyer       [Draft]   | fractions." [Criterion L6]        |                           |
 | • Karan Patel       [Pending] |                                   | [Teacher Observations]    |
 |                               | "He collaborated patiently with   | • Collaboration (Nov 14)* |
 |                               | peers during survey analysis."    |   "Showed leadership in   |
-|                               | [🔗 Observation #2]               |   group data project"     |
+|                               | [Observation #2]                  |   group data project"     |
 |                               |                                   |                           |
-| [ ✨ Generate All (30) ]      | [Review Timer: 01:14]             | [+ Add Observation Note]  |
-|                               | [ 🔄 Regenerate ] [ ✓ Approve ]   |                           |
+| [ Generate All (30) ]         | [Review Timer: 01:14]             | [+ Add Observation Note]  |
+|                               | [ Regenerate ] [ Approve ]        |                           |
 +-------------------------------+-----------------------------------+---------------------------+
 ```
 *(Hovering any sentence in the draft highlights the cited criterion or observation on the right pane in real time.)*
 
 ---
 
-## 🏗️ Architecture & Pipeline Overview
+## Architecture & Pipeline Overview
 
 ```mermaid
 flowchart TD
@@ -57,7 +57,7 @@ flowchart TD
 
 ---
 
-## ⚡ 5-Minute Local Quickstart
+## 5-Minute Local Quickstart
 
 ### Prerequisites
 - Node.js >= 18.0.0
@@ -87,7 +87,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the copilot interfac
 
 ---
 
-## 📊 Measured Benchmark Results
+## Measured Benchmark Results
 
 All metrics below are generated directly by reproducible scripts in the repository:
 
@@ -124,7 +124,7 @@ Run: `npx ts-node bench/redelivery-test.ts`
 
 ---
 
-## 🧪 Evals Summary (`evals/run-evals.ts`)
+## Evals Summary (`evals/run-evals.ts`)
 
 Evaluated against 30 synthetic student evidence packs across diverse curricula:
 
@@ -140,13 +140,13 @@ Run: `npx ts-node evals/run-evals.ts`
 
 ---
 
-## 🔒 Security & Privacy by Design
+## Security & Privacy by Design
 1. **Zero-PII Boundary**: Student names and preferred names are tokenized (`STUDENT_1`) before prompt serialization. Third-party LLM providers never receive identifiable student names.
 2. **Deterministic Post-Generation Guardrail**: Pure TypeScript validator inspects output sentences before database insertion, rejecting ungrounded claims, deficit terms, and comparative phrases.
 3. **In-Memory Re-hydration**: Student names are reintroduced in memory right before database transaction write, never leaking to CloudWatch/SQS log streams.
 
 ---
 
-## ⚠️ Known Limitations & Future Roadmap
+## Known Limitations & Future Roadmap
 - **Current Limitation**: Bulk generation uses client-side polling on `generationJob(jobId)`. At cohorts exceeding 100+ students, a Redis pub/sub layer with WebSocket subscriptions (`graphql-ws`) would be preferable.
 - **Future Work**: Multilingual comment translation (e.g., generating bilingual comments for ESL parents) and direct integration with Google Classroom / Canvas LMS assignment sync.
