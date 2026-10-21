@@ -77,6 +77,15 @@ function mapAssessmentResult(row: Record<string, unknown>) {
   };
 }
 
+function mapCitation(c: Record<string, unknown>) {
+  return {
+    id: c['id'],
+    sentenceIdx: Number(c['sentence_idx'] ?? c['sentenceIdx'] ?? 0),
+    sourceType: String(c['source_type'] ?? c['sourceType'] ?? 'observation'),
+    sourceId: String(c['source_id'] ?? c['sourceId'] ?? ''),
+  };
+}
+
 function mapComment(row: Record<string, unknown>) {
   return {
     id: row['id'],
@@ -89,7 +98,9 @@ function mapComment(row: Record<string, unknown>) {
     generationMs: row['generation_ms'] ?? null,
     tone: row['tone'] ?? null,
     length: row['length'] ?? null,
-    citations: (row['citations'] as unknown[]) ?? [],
+    citations: Array.isArray(row['citations'])
+      ? (row['citations'] as Record<string, unknown>[]).map(mapCitation)
+      : [],
     createdAt: row['created_at'],
     updatedAt: row['updated_at'],
     student: { id: row['student_id'] },
@@ -289,6 +300,16 @@ export const resolvers = {
     students: async (parent: { id: string }) => {
       const rows = await db('students').where({ class_id: parent.id }).orderBy('name', 'asc');
       return rows.map(mapStudent);
+    },
+  },
+
+  ReportComment: {
+    citations: async (parent: { id: string; citations?: Record<string, unknown>[] }) => {
+      if (Array.isArray(parent.citations) && parent.citations.length > 0) {
+        return parent.citations.map(mapCitation);
+      }
+      const rows = await db('comment_citations').where({ comment_id: parent.id }).select('*');
+      return rows.map(mapCitation);
     },
   },
 
