@@ -4,13 +4,15 @@ import * as path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
-const connectionString =
+const rawConnectionString =
   process.env['DATABASE_URL'] ?? 'postgresql://hourback:hourback@localhost:5432/hourback';
 const isCloudOrSsl =
-  connectionString.includes('sslmode=require') ||
-  connectionString.includes('neon.tech') ||
-  connectionString.includes('supabase.co') ||
+  rawConnectionString.includes('sslmode=require') ||
+  rawConnectionString.includes('neon.tech') ||
+  rawConnectionString.includes('supabase.co') ||
+  rawConnectionString.includes('supabase.com') ||
   process.env['NODE_ENV'] === 'production';
+const connectionString = rawConnectionString.replace(/[\?&]sslmode=[^&]+/, '');
 
 const db = knex({
   client: 'postgresql',
