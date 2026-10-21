@@ -4,10 +4,19 @@ import * as path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
+const connectionString =
+  process.env['DATABASE_URL'] ?? 'postgresql://hourback:hourback@localhost:5432/hourback';
+const isCloudOrSsl =
+  connectionString.includes('sslmode=require') ||
+  connectionString.includes('neon.tech') ||
+  connectionString.includes('supabase.co');
+
 const config: Record<string, Knex.Config> = {
   development: {
     client: 'postgresql',
-    connection: process.env['DATABASE_URL'] ?? 'postgresql://hourback:hourback@localhost:5432/hourback',
+    connection: isCloudOrSsl
+      ? { connectionString, ssl: { rejectUnauthorized: false } }
+      : connectionString,
     migrations: {
       directory: path.resolve(__dirname, 'migrations'),
       extension: 'ts',

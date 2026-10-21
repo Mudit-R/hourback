@@ -16,9 +16,19 @@ import {
 } from './validator';
 
 // ── DB ────────────────────────────────────────────────────────────────────────
+const connectionString =
+  process.env['DATABASE_URL'] ?? 'postgresql://hourback:hourback@localhost:5432/hourback';
+const isCloudOrSsl =
+  connectionString.includes('sslmode=require') ||
+  connectionString.includes('neon.tech') ||
+  connectionString.includes('supabase.co') ||
+  process.env['NODE_ENV'] === 'production';
+
 const db = knex({
   client: 'postgresql',
-  connection: process.env['DATABASE_URL'] ?? 'postgresql://hourback:hourback@localhost:5432/hourback',
+  connection: isCloudOrSsl
+    ? { connectionString, ssl: { rejectUnauthorized: false } }
+    : connectionString,
   pool: { min: 1, max: 5 },
 });
 
