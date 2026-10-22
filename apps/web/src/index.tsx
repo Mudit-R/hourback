@@ -4,6 +4,7 @@ import { ApolloProvider } from '@apollo/client';
 import { Provider } from 'react-redux';
 import { apolloClient } from './graphql/client';
 import { store } from './store';
+import { AuthProvider } from './context/AuthContext';
 import { App } from './App';
 import './global.css';
 
@@ -18,7 +19,9 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
       <ApolloProvider client={apolloClient}>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </ApolloProvider>
     </Provider>
   </React.StrictMode>,

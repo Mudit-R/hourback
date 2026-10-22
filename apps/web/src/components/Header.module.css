@@ -113,39 +113,24 @@
   color: var(--color-text-primary);
 }
 
-/* ── Right Area ── */
-.rightArea {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-}
-
-/* ── Analytics Toggle ── */
-.analyticsToggleBtn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
+.registerClassBtn {
+  padding: 5px 9px;
   font-size: 12px;
-  font-weight: 500;
-  transition: all var(--transition-fast);
+  font-weight: 600;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-sm);
+  color: #2563eb;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all var(--transition-fast);
 }
 
-.analyticsToggleBtn:hover {
-  border-color: #cbd5e1;
-  color: var(--color-text-primary);
-  background: var(--color-surface-2);
-}
-
-.analyticsToggleBtnActive {
-  background: var(--color-primary-subtle) !important;
-  border-color: var(--color-primary) !important;
-  color: var(--color-primary) !important;
+.registerClassBtn:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
 }
 
 /* ── Navigation Tabs ── */
@@ -174,6 +159,13 @@
   transition: all var(--transition-fast);
 }
 
+.navTabIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+}
+
 .navTab:hover {
   color: var(--color-text-primary);
   background: rgba(255, 255, 255, 0.6);
@@ -185,16 +177,52 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+/* ── Right Area ── */
+.rightArea {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+/* ── Activity Updates Button ── */
+.activityBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.activityBtn:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+  color: var(--color-text-primary);
+}
+
+.activityDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+}
+
 /* ── AI Partner Button ── */
 .aiPartnerBtn {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%);
-  border: 1px solid #c7d2fe;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius-sm);
-  color: #4338ca;
+  color: #1e293b;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -202,11 +230,16 @@
 }
 
 .aiPartnerBtn:hover {
-  background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%);
-  border-color: #818cf8;
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
 
-/* ── Teacher Badge ── */
+/* ── Educator Profile Dropdown ── */
+.profileWrapper {
+  position: relative;
+}
+
 .teacherBadge {
   display: flex;
   align-items: center;
@@ -218,7 +251,13 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text-secondary);
-  cursor: default;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.teacherBadge:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
 }
 
 .teacherAvatar {
@@ -233,4 +272,93 @@
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 260px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem 0;
+  z-index: 200;
+  animation: dropdownEnter 0.15s ease-out;
+}
+
+@keyframes dropdownEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownHeader {
+  padding: 0.5rem 1rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dropdownName {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dropdownSchool {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.1rem;
+}
+
+.dropdownSection {
+  padding: 0.35rem 0;
+}
+
+.dropdownSectionTitle {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  padding: 0.25rem 1rem;
+}
+
+.dropdownItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: #334155;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.1s ease;
+}
+
+.dropdownItem:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background-color: #f1f5f9;
+  margin: 0.35rem 0;
+}
+
+.dropdownLogout {
+  color: #dc2626 !important;
+}
+
+.dropdownLogout:hover {
+  background-color: #fef2f2 !important;
 }

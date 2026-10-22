@@ -108,20 +108,37 @@ export const ReportCardsView: React.FC<ReportCardsViewProps> = ({ classId, perio
 
         <div className={styles.actionsArea}>
           <button type="button" className={styles.btnSecondary} onClick={() => window.print()}>
-            🖨️ Print Report
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
+            </svg>
+            Print Report
           </button>
           <button type="button" className={styles.btnSecondary} onClick={handleExportCSV}>
-            📥 Export CSV
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Export CSV
           </button>
           <button type="button" className={styles.btnPrimary} onClick={handlePublishPortal}>
-            ✉️ Publish to Toddle Portal
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+            Publish to Family Portal
           </button>
         </div>
       </div>
 
       {publishedToast && (
         <div style={{ background: '#ecfdf5', borderBottom: '1px solid #a7f3d0', color: '#065f46', padding: '10px 24px', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-          ✓ Successfully published 30 academic progress report cards to the Toddle Family Portal. Parents notified.
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Successfully published 30 academic progress report cards to the Toddle Family Portal. Parents notified.
         </div>
       )}
 

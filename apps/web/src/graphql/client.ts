@@ -1,4 +1,5 @@
 import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
@@ -17,19 +18,27 @@ const graphqlUri =
 
 const httpLink = createHttpLink({
   uri: graphqlUri,
-  headers: {
-    // Teacher auth header — set after login flow (Phase 5 uses a seed teacher ID)
-    'x-teacher-id': localStorage.getItem('teacherId') ?? '',
-  },
+});
+
+const authLink = setContext((_, { headers }) => {
+  const teacherId = typeof window !== 'undefined' ? localStorage.getItem('teacherId') : null;
+  return {
+    headers: {
+      ...headers,
+      ...(teacherId ? { 'x-teacher-id': teacherId } : {}),
+    },
+  };
 });
 
 export const apolloClient = new ApolloClient({
-  link: from([errorLink, httpLink]),
+  link: from([errorLink, authLink, httpLink]),
   cache: new InMemoryCache({
     typePolicies: {
       Student: { keyFields: ['id'] },
       ReportComment: { keyFields: ['id'] },
       GenerationJob: { keyFields: ['id'] },
+      Class: { keyFields: ['id'] },
+      Teacher: { keyFields: ['id'] },
     },
   }),
   defaultOptions: {

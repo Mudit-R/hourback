@@ -140,6 +140,20 @@ export const typeDefs = /* GraphQL */ `
     commentCount: Int!
   }
 
+  type AuthPayload {
+    token: String!
+    teacher: Teacher!
+  }
+
+  type ActivityItem {
+    id: ID!
+    type: String!
+    title: String!
+    description: String!
+    timestamp: DateTime!
+    actor: String!
+  }
+
   type AIAssistantResponse {
     reply: String!
     suggestions: [String!]!
@@ -150,8 +164,14 @@ export const typeDefs = /* GraphQL */ `
     """Current authenticated teacher profile."""
     me: Teacher
 
+    """List of registered teachers for switching / directory / demo login."""
+    teachers: [Teacher!]!
+
     """Classes taught by the current teacher."""
     classes: [Class!]!
+
+    """Real-time institutional activity and audit updates."""
+    activityFeed(classId: ID): [ActivityItem!]!
 
     """
     Returns all students in a class with their latest comment status for a period.
@@ -177,6 +197,27 @@ export const typeDefs = /* GraphQL */ `
 
   # ─── Mutations ────────────────────────────────────────────────────────────
   type Mutation {
+    """Sign in with email and optional password."""
+    login(email: String!, password: String): AuthPayload!
+
+    """Register a new educator account."""
+    signup(name: String!, email: String!, school: String!, password: String): AuthPayload!
+
+    """Register a new class with automatic default criteria and reporting period."""
+    createClass(name: String!, grade: String!, subject: String!, academicYear: String!): Class!
+
+    """Update class details (name, grade, subject, academic year)."""
+    updateClass(classId: ID!, name: String, grade: String, subject: String, academicYear: String): Class!
+
+    """Register a new student in a class with baseline assessment records."""
+    registerStudent(classId: ID!, name: String!, preferredName: String): Student!
+
+    """Update student details."""
+    updateStudent(studentId: ID!, name: String, preferredName: String): Student!
+
+    """Remove a student from class roster."""
+    removeStudent(studentId: ID!): Boolean!
+
     """Add a free-text observation for a student."""
     addObservation(studentId: ID!, text: String!, tag: String): Observation!
 

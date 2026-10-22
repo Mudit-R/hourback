@@ -88,7 +88,12 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({ 
         </div>
 
         <div className={styles.bhagBadge}>
-          🎯 Toddle BHAG: Save 10+ Hours / Week
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 6 }}>
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="6" />
+            <circle cx="12" cy="12" r="2" />
+          </svg>
+          Toddle BHAG: Save 10+ Hours / Week
         </div>
       </div>
 

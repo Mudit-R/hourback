@@ -176,6 +176,17 @@ export const resolvers = {
       return svc.getGenerationJob(args.jobId);
     },
 
+    teachers: async () => {
+      return svc.getTeachers();
+    },
+
+    activityFeed: async (
+      _parent: unknown,
+      args: { classId?: string },
+    ) => {
+      return svc.getActivityFeed(args.classId);
+    },
+
     askAIAssistant: async (
       _parent: unknown,
       args: { classId: string; prompt: string },
@@ -187,6 +198,69 @@ export const resolvers = {
   },
 
   Mutation: {
+    login: async (
+      _parent: unknown,
+      args: { email: string; password?: string },
+    ) => {
+      return svc.login(args.email, args.password);
+    },
+
+    signup: async (
+      _parent: unknown,
+      args: { name: string; email: string; school: string; password?: string },
+    ) => {
+      return svc.signup(args.name, args.email, args.school, args.password);
+    },
+
+    createClass: async (
+      _parent: unknown,
+      args: { name: string; grade: string; subject: string; academicYear: string },
+      ctx: GraphQLContext,
+    ) => {
+      const teacherId = requireTeacher(ctx);
+      const row = await svc.createClass(teacherId, args.name, args.grade, args.subject, args.academicYear);
+      return mapClass(row);
+    },
+
+    updateClass: async (
+      _parent: unknown,
+      args: { classId: string; name?: string; grade?: string; subject?: string; academicYear?: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireTeacher(ctx);
+      const row = await svc.updateClass(args.classId, args);
+      return mapClass(row);
+    },
+
+    registerStudent: async (
+      _parent: unknown,
+      args: { classId: string; name: string; preferredName?: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireTeacher(ctx);
+      const row = await svc.registerStudent(args.classId, args.name, args.preferredName);
+      return mapStudent(row);
+    },
+
+    updateStudent: async (
+      _parent: unknown,
+      args: { studentId: string; name?: string; preferredName?: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireTeacher(ctx);
+      const row = await svc.updateStudent(args.studentId, args);
+      return mapStudent(row);
+    },
+
+    removeStudent: async (
+      _parent: unknown,
+      args: { studentId: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireTeacher(ctx);
+      return svc.removeStudent(args.studentId);
+    },
+
     addObservation: async (
       _parent: unknown,
       args: { studentId: string; text: string; tag?: string },

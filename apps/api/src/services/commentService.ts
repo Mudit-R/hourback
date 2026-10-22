@@ -470,7 +470,7 @@ export async function askAIAssistant(classId: string, prompt: string) {
   const suggestions: string[] = [];
 
   if (p.includes('summar') || p.includes('strength') || p.includes('parent') || p.includes('conference')) {
-    reply = `### 📋 Class Progress & Conference Summary for ${classObj?.name ?? 'Grade 5'}\n\n` +
+    reply = `### Class Progress & Conference Summary for ${classObj?.name ?? 'Grade 5'}\n\n` +
       `**Cohort Overview:** Across all ${students.length} students, the class has demonstrated strong engagement in ${summaries[0]?.name ?? 'core concepts'} (Class Average: ${summaries[0]?.avg ?? '5.4'} / 8.0).\n\n` +
       `**Key Strengths:**\n` +
       `• **${summaries[0]?.name ?? 'Conceptual Understanding'}:** 78% of students consistently meet or exceed grade-level expectations.\n` +
@@ -484,7 +484,7 @@ export async function askAIAssistant(classId: string, prompt: string) {
       'Schedule parent check-ins for students below average'
     );
   } else if (p.includes('interven') || p.includes('support') || p.includes('struggl')) {
-    reply = `### 🎯 Targeted Differentiation & Intervention Plan\n\n` +
+    reply = `### Targeted Differentiation & Intervention Plan\n\n` +
       `Based on the latest rubric scores in ${classObj?.name ?? 'Class'}:\n\n` +
       `1. **Small-Group Guided Instruction (Tier 2):**\n` +
       `   • Focus on breaking down multi-step word problems into visual representations (bar models & decomposing numbers).\n` +
@@ -499,7 +499,7 @@ export async function askAIAssistant(classId: string, prompt: string) {
       'Update observation tags for intervention cohort'
     );
   } else if (p.includes('fraction') || p.includes('lesson') || p.includes('activit')) {
-    reply = `### 💡 Differentiated Unit Activity: "The Real-World Recipe Scale-Up"\n\n` +
+    reply = `### Differentiated Unit Activity: "The Real-World Recipe Scale-Up"\n\n` +
       `**Objective:** Apply fraction decomposition, equivalent fractions, and scaling to real-world culinary recipes.\n\n` +
       `• **Tier 1 (Foundation):** Halving and doubling unit fractions (1/2, 1/4, 1/3) using measuring cup visuals.\n` +
       `• **Tier 2 (Core Grade Level):** Converting mixed fractions into improper fractions to feed a banquet of 18 guests.\n` +
@@ -510,7 +510,7 @@ export async function askAIAssistant(classId: string, prompt: string) {
       'Share printable recipe worksheets with parents'
     );
   } else {
-    reply = `### ✨ Toddle AI Teaching Partner\n\n` +
+    reply = `### Toddle AI Teaching Partner\n\n` +
       `Analyzing **${classObj?.name ?? 'Active Class'}** (${students.length} students enrolled):\n\n` +
       summaries.map(s => `• **${s.name}:** Class Average **${s.avg} / 8.0**`).join('\n') +
       `\n\nI can assist you with curriculum mapping, grading rubrics, student observations, or generating family progress reports. What would you like to explore next?`;
@@ -523,3 +523,309 @@ export async function askAIAssistant(classId: string, prompt: string) {
 
   return { reply, suggestions };
 }
+
+// ── Authentication & Teacher Management ───────────────────────────────────────
+export async function getTeachers() {
+  return db('teachers').orderBy('name', 'asc').select('*');
+}
+
+export async function login(email: string, _password?: string) {
+  let teacher = await db('teachers').whereRaw('LOWER(email) = ?', [email.trim().toLowerCase()]).first();
+  if (!teacher) {
+    // If demo email or unknown educator, create on the fly so login never gets stuck
+    const namePart = email.split('@')[0] ?? 'Educator';
+    const formattedName = namePart
+      .split('.')
+      .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+      .join(' ');
+    const id = uuidv4();
+    await db('teachers').insert({
+      id,
+      name: formattedName.length > 2 ? formattedName : 'Educator',
+      email: email.trim().toLowerCase(),
+      school: 'Delhi International School',
+    });
+    teacher = await db('teachers').where({ id }).first();
+  }
+  return {
+    token: `tkn_${teacher.id}`,
+    teacher,
+  };
+}
+
+export async function signup(name: string, email: string, school: string, _password?: string) {
+  let teacher = await db('teachers').whereRaw('LOWER(email) = ?', [email.trim().toLowerCase()]).first();
+  if (!teacher) {
+    const id = uuidv4();
+    await db('teachers').insert({
+      id,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      school: school.trim() || 'International Academy',
+    });
+    teacher = await db('teachers').where({ id }).first();
+
+    // Seed an initial demo class for new teacher
+    const classId = uuidv4();
+    await db('classes').insert({
+      id: classId,
+      teacher_id: id,
+      name: 'Grade 5 — Inquiry & Mathematics',
+      grade: 'Grade 5',
+      subject: 'Mathematics',
+      academic_year: '2024-2025',
+    });
+
+    const unitId = uuidv4();
+    await db('units').insert({
+      id: unitId,
+      class_id: classId,
+      title: 'Unit 1: Patterns & Relationships',
+    });
+
+    const assessmentId = uuidv4();
+    await db('assessments').insert({
+      id: assessmentId,
+      unit_id: unitId,
+      title: 'Semester Assessment Rubric',
+      type: 'criteria',
+    });
+
+    const crit1 = uuidv4();
+    const crit2 = uuidv4();
+    await db('criteria').insert([
+      { id: crit1, assessment_id: assessmentId, name: 'Conceptual Understanding', max_level: 8, sort_order: 0 },
+      { id: crit2, assessment_id: assessmentId, name: 'Problem-Solving Strategies', max_level: 8, sort_order: 1 },
+    ]);
+
+    await db('report_periods').insert({
+      id: uuidv4(),
+      class_id: classId,
+      name: 'Semester 1 2024-2025',
+      start_date: '2024-09-01',
+      end_date: '2025-01-31',
+    });
+
+    // Add 3 sample students
+    const s1 = uuidv4();
+    const s2 = uuidv4();
+    await db('students').insert([
+      { id: s1, class_id: classId, name: 'Aria Montgomery', preferred_name: 'Aria' },
+      { id: s2, class_id: classId, name: 'Lucas Scott', preferred_name: 'Lucas' },
+    ]);
+
+    await db('assessment_results').insert([
+      { id: uuidv4(), student_id: s1, criterion_id: crit1, level: 6, feedback: 'Strong conceptual grasp.' },
+      { id: uuidv4(), student_id: s1, criterion_id: crit2, level: 5, feedback: 'Applies methods independently.' },
+      { id: uuidv4(), student_id: s2, criterion_id: crit1, level: 4, feedback: 'Meets expectations.' },
+      { id: uuidv4(), student_id: s2, criterion_id: crit2, level: 4, feedback: 'Developing consistency.' },
+    ]);
+
+    await db('observations').insert([
+      { id: uuidv4(), student_id: s1, text: 'Exhibited strong leadership in collaborative tasks.', tag: 'collaboration' },
+      { id: uuidv4(), student_id: s2, text: 'Active inquirer during guided mathematical clinics.', tag: 'mathematics' },
+    ]);
+  }
+  return {
+    token: `tkn_${teacher.id}`,
+    teacher,
+  };
+}
+
+// ── Class Registration & Management ───────────────────────────────────────────
+export async function createClass(
+  teacherId: string,
+  name: string,
+  grade: string,
+  subject: string,
+  academicYear: string,
+) {
+  const classId = uuidv4();
+  await db('classes').insert({
+    id: classId,
+    teacher_id: teacherId,
+    name: name.trim(),
+    grade: grade.trim(),
+    subject: subject.trim(),
+    academic_year: academicYear.trim(),
+  });
+
+  const unitId = uuidv4();
+  await db('units').insert({
+    id: unitId,
+    class_id: classId,
+    title: 'Unit 1: Central Inquiry',
+  });
+
+  const assessmentId = uuidv4();
+  await db('assessments').insert({
+    id: assessmentId,
+    unit_id: unitId,
+    title: 'Term Criteria Rubric',
+    type: 'criteria',
+  });
+
+  await db('criteria').insert([
+    { id: uuidv4(), assessment_id: assessmentId, name: 'Conceptual Understanding', max_level: 8, sort_order: 0 },
+    { id: uuidv4(), assessment_id: assessmentId, name: 'Inquiry & Investigation', max_level: 8, sort_order: 1 },
+    { id: uuidv4(), assessment_id: assessmentId, name: 'Communication & Expression', max_level: 8, sort_order: 2 },
+    { id: uuidv4(), assessment_id: assessmentId, name: 'Critical Reflection', max_level: 8, sort_order: 3 },
+  ]);
+
+  await db('report_periods').insert({
+    id: uuidv4(),
+    class_id: classId,
+    name: `Term 1 ${academicYear.trim()}`,
+    start_date: '2024-09-01',
+    end_date: '2025-01-31',
+  });
+
+  const newClass = await db('classes').where({ id: classId }).first();
+  return newClass;
+}
+
+export async function updateClass(
+  classId: string,
+  data: { name?: string; grade?: string; subject?: string; academicYear?: string },
+) {
+  const updates: Record<string, unknown> = {};
+  if (data.name) updates['name'] = data.name.trim();
+  if (data.grade) updates['grade'] = data.grade.trim();
+  if (data.subject) updates['subject'] = data.subject.trim();
+  if (data.academicYear) updates['academic_year'] = data.academicYear.trim();
+  updates['updated_at'] = new Date();
+
+  await db('classes').where({ id: classId }).update(updates);
+  return db('classes').where({ id: classId }).first();
+}
+
+// ── Student Registration & Management ─────────────────────────────────────────
+export async function registerStudent(classId: string, name: string, preferredName?: string) {
+  const studentId = uuidv4();
+  await db('students').insert({
+    id: studentId,
+    class_id: classId,
+    name: name.trim(),
+    preferred_name: preferredName ? preferredName.trim() : null,
+  });
+
+  // Attach baseline assessment results for all criteria in this class
+  const classObj = await db('classes').where({ id: classId }).first();
+  const criteria = await db('criteria as c')
+    .join('assessments as a', 'c.assessment_id', 'a.id')
+    .join('units as u', 'a.unit_id', 'u.id')
+    .where('u.class_id', classId)
+    .select('c.id');
+
+  if (criteria.length > 0) {
+    const results = criteria.map((c: { id: string }) => ({
+      id: uuidv4(),
+      student_id: studentId,
+      criterion_id: c.id,
+      level: 4,
+      feedback: 'Meeting grade-level expectations independently.',
+    }));
+    await db('assessment_results').insert(results);
+  }
+
+  // Welcome observation
+  await db('observations').insert({
+    id: uuidv4(),
+    student_id: studentId,
+    text: `Enrolled in ${classObj?.name ?? 'class'}. Active participant in initial inquiry activities.`,
+    tag: 'inquiry',
+  });
+
+  return db('students').where({ id: studentId }).first();
+}
+
+export async function updateStudent(studentId: string, data: { name?: string; preferredName?: string }) {
+  const updates: Record<string, unknown> = {};
+  if (data.name) updates['name'] = data.name.trim();
+  if (data.preferredName !== undefined) updates['preferred_name'] = data.preferredName?.trim() || null;
+  updates['updated_at'] = new Date();
+
+  await db('students').where({ id: studentId }).update(updates);
+  return db('students').where({ id: studentId }).first();
+}
+
+export async function removeStudent(studentId: string) {
+  await db('students').where({ id: studentId }).delete();
+  return true;
+}
+
+// ── Activity & Audit Feed ─────────────────────────────────────────────────────
+export async function getActivityFeed(classId?: string) {
+  const items: Array<{
+    id: string;
+    type: string;
+    title: string;
+    description: string;
+    timestamp: Date;
+    actor: string;
+  }> = [];
+
+  // Recent observations
+  let obsQuery = db('observations as o')
+    .join('students as s', 'o.student_id', 's.id')
+    .select('o.id', 'o.text', 'o.created_at', 's.name as student_name', 's.class_id')
+    .orderBy('o.created_at', 'desc')
+    .limit(10);
+  if (classId) obsQuery = obsQuery.where('s.class_id', classId);
+  const observations = await obsQuery;
+
+  for (const obs of observations) {
+    items.push({
+      id: `obs_${obs.id}`,
+      type: 'observation',
+      title: 'Observation Recorded',
+      description: `Noted for ${obs.student_name}: "${obs.text.slice(0, 75)}${obs.text.length > 75 ? '...' : ''}"`,
+      timestamp: obs.created_at,
+      actor: 'Educator',
+    });
+  }
+
+  // Recent comments
+  let comQuery = db('report_comments as rc')
+    .join('students as s', 'rc.student_id', 's.id')
+    .select('rc.id', 'rc.status', 'rc.updated_at', 'rc.created_at', 's.name as student_name', 's.class_id')
+    .orderBy('rc.updated_at', 'desc')
+    .limit(10);
+  if (classId) comQuery = comQuery.where('s.class_id', classId);
+  const comments = await comQuery;
+
+  for (const com of comments) {
+    items.push({
+      id: `com_${com.id}`,
+      type: 'report',
+      title: `Progress Report ${com.status === 'approved' ? 'Approved' : 'Drafted'}`,
+      description: `Academic progress commentary ${com.status} for ${com.student_name}.`,
+      timestamp: com.updated_at || com.created_at,
+      actor: 'Toddle AI / Educator',
+    });
+  }
+
+  // Recent students
+  let stuQuery = db('students')
+    .select('id', 'name', 'created_at', 'class_id')
+    .orderBy('created_at', 'desc')
+    .limit(5);
+  if (classId) stuQuery = stuQuery.where('class_id', classId);
+  const students = await stuQuery;
+
+  for (const stu of students) {
+    items.push({
+      id: `stu_${stu.id}`,
+      type: 'enrollment',
+      title: 'Student Roster Enrolled',
+      description: `${stu.name} added to active class roster with baseline rubric criteria.`,
+      timestamp: stu.created_at,
+      actor: 'Registrar',
+    });
+  }
+
+  // Sort by timestamp desc and take top 15
+  items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return items.slice(0, 15);
+}
+
