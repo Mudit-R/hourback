@@ -1,11 +1,15 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
+export type AppTab = 'comments' | 'gradebook' | 'portfolios' | 'reportcards' | 'analytics';
+
 interface UIState {
   selectedStudentId: string | null;
   selectedClassId: string | null;
   selectedPeriodId: string | null;
   activeJobId: string | null;
   sidebarOpen: boolean;
+  activeTab: AppTab;
+  aiAssistantOpen: boolean;
 }
 
 const initialState: UIState = {
@@ -14,6 +18,8 @@ const initialState: UIState = {
   selectedPeriodId: null,
   activeJobId: null,
   sidebarOpen: false,
+  activeTab: 'comments',
+  aiAssistantOpen: false,
 };
 
 export const uiSlice = createSlice({
@@ -31,11 +37,24 @@ export const uiSlice = createSlice({
     setActiveJob: (state, action: PayloadAction<string | null>) => {
       state.activeJobId = action.payload;
     },
+    setActiveTab: (state, action: PayloadAction<AppTab>) => {
+      state.activeTab = action.payload;
+    },
+    setAiAssistantOpen: (state, action: PayloadAction<boolean>) => {
+      state.aiAssistantOpen = action.payload;
+    },
     toggleSidebar: (state) => {
       state.sidebarOpen = !state.sidebarOpen;
     },
   },
 });
 
-export const { selectStudent, selectClass, setActiveJob, toggleSidebar } = uiSlice.actions;
+export const {
+  selectStudent,
+  selectClass,
+  setActiveJob,
+  setActiveTab,
+  setAiAssistantOpen,
+  toggleSidebar,
+} = uiSlice.actions;
 export default uiSlice.reducer;

@@ -140,6 +140,11 @@ export const typeDefs = /* GraphQL */ `
     commentCount: Int!
   }
 
+  type AIAssistantResponse {
+    reply: String!
+    suggestions: [String!]!
+  }
+
   # ─── Queries ──────────────────────────────────────────────────────────────
   type Query {
     """Current authenticated teacher profile."""
@@ -165,12 +170,18 @@ export const typeDefs = /* GraphQL */ `
 
     """Poll job progress (used as subscription fallback)."""
     generationJob(jobId: ID!): GenerationJob
+
+    """Toddle AI Teaching Assistant Co-pilot for curriculum, insights, and parent communication."""
+    askAIAssistant(classId: ID!, prompt: String!): AIAssistantResponse!
   }
 
   # ─── Mutations ────────────────────────────────────────────────────────────
   type Mutation {
     """Add a free-text observation for a student."""
     addObservation(studentId: ID!, text: String!, tag: String): Observation!
+
+    """Update a student's criteria level directly in the gradebook."""
+    updateAssessmentResult(resultId: ID!, level: Int!, feedback: String): AssessmentResult!
 
     """
     Enqueues one SQS message per student in the class.

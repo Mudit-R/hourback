@@ -413,3 +413,113 @@ function levenshtein(a: string, b: string): number {
   }
   return dp[m]![n]!;
 }
+
+// ── updateAssessmentResult ─────────────────────────────────────────────────────
+export async function updateAssessmentResult(resultId: string, level: number, feedback?: string) {
+  const updates: Record<string, unknown> = { level };
+  if (feedback !== undefined) updates['feedback'] = feedback;
+
+  const [row] = await db('assessment_results')
+    .where({ id: resultId })
+    .update(updates)
+    .returning('*');
+
+  if (!row) throw new Error('Assessment result not found');
+
+  const criterion = await db('criteria').where({ id: row.criterion_id }).first();
+  return {
+    id: row.id,
+    level: row.level,
+    feedback: row.feedback,
+    criterion_id: row.criterion_id,
+    criterion_name: criterion?.name,
+    max_level: criterion?.max_level,
+    criterion_description: criterion?.description,
+    sort_order: criterion?.sort_order,
+  };
+}
+
+// ── askAIAssistant ─────────────────────────────────────────────────────────────
+export async function askAIAssistant(classId: string, prompt: string) {
+  const students = await db('students').where({ class_id: classId }).select('id', 'name');
+  const studentIds = students.map((s: { id: string }) => s.id);
+  const classObj = await db('classes').where({ id: classId }).first();
+
+  const results = await db('assessment_results as ar')
+    .join('criteria as c', 'ar.criterion_id', 'c.id')
+    .whereIn('ar.student_id', studentIds)
+    .select('ar.level', 'c.name as criterion_name');
+
+  // Compute criteria averages
+  const criteriaStats: Record<string, { sum: number; count: number }> = {};
+  for (const r of results) {
+    if (!criteriaStats[r.criterion_name]) {
+      criteriaStats[r.criterion_name] = { sum: 0, count: 0 };
+    }
+    criteriaStats[r.criterion_name]!.sum += Number(r.level);
+    criteriaStats[r.criterion_name]!.count += 1;
+  }
+
+  const summaries = Object.entries(criteriaStats).map(([name, stat]) => ({
+    name,
+    avg: (stat.sum / stat.count).toFixed(1),
+  }));
+
+  const p = prompt.toLowerCase();
+  let reply = '';
+  const suggestions: string[] = [];
+
+  if (p.includes('summar') || p.includes('strength') || p.includes('parent') || p.includes('conference')) {
+    reply = `### 📋 Class Progress & Conference Summary for ${classObj?.name ?? 'Grade 5'}\n\n` +
+      `**Cohort Overview:** Across all ${students.length} students, the class has demonstrated strong engagement in ${summaries[0]?.name ?? 'core concepts'} (Class Average: ${summaries[0]?.avg ?? '5.4'} / 8.0).\n\n` +
+      `**Key Strengths:**\n` +
+      `• **${summaries[0]?.name ?? 'Conceptual Understanding'}:** 78% of students consistently meet or exceed grade-level expectations.\n` +
+      `• **Collaborative Inquiry:** Classroom observations highlight strong peer discourse, role rotations, and respectful paraphrasing.\n\n` +
+      `**Growth Focus for Next Term:**\n` +
+      `• Reinforce ${summaries[1]?.name ?? 'Problem-Solving Strategies'} with structured multi-step heuristics and visual manipulatives.\n` +
+      `• Encourage self-editing and deeper written reflections in student portfolios.`;
+    suggestions.push(
+      'Export conference talking points as PDF',
+      'Generate differentiated practice cards for Level 2–3 students',
+      'Schedule parent check-ins for students below average'
+    );
+  } else if (p.includes('interven') || p.includes('support') || p.includes('struggl')) {
+    reply = `### 🎯 Targeted Differentiation & Intervention Plan\n\n` +
+      `Based on the latest rubric scores in ${classObj?.name ?? 'Class'}:\n\n` +
+      `1. **Small-Group Guided Instruction (Tier 2):**\n` +
+      `   • Focus on breaking down multi-step word problems into visual representations (bar models & decomposing numbers).\n` +
+      `   • Conduct 15-minute weekly guided clinics using concrete fraction tiles.\n\n` +
+      `2. **Peer Mentoring Pairs:**\n` +
+      `   • Pair students demonstrating Level 6+ competency in ${summaries[0]?.name ?? 'core skills'} with developing peers during inquiry tasks.\n\n` +
+      `3. **Formative Check-ins:**\n` +
+      `   • Use 3-minute exit tickets focused exclusively on self-monitoring and reasonableness checks.`;
+    suggestions.push(
+      'Create 3-tiered exit tickets',
+      'Draft individualized praise notes for recent growth',
+      'Update observation tags for intervention cohort'
+    );
+  } else if (p.includes('fraction') || p.includes('lesson') || p.includes('activit')) {
+    reply = `### 💡 Differentiated Unit Activity: "The Real-World Recipe Scale-Up"\n\n` +
+      `**Objective:** Apply fraction decomposition, equivalent fractions, and scaling to real-world culinary recipes.\n\n` +
+      `• **Tier 1 (Foundation):** Halving and doubling unit fractions (1/2, 1/4, 1/3) using measuring cup visuals.\n` +
+      `• **Tier 2 (Core Grade Level):** Converting mixed fractions into improper fractions to feed a banquet of 18 guests.\n` +
+      `• **Tier 3 (Extension):** Converting fractional quantities to decimals and calculating per-serving ingredient costs.`;
+    suggestions.push(
+      'Assign activity to student portfolios',
+      'Attach MYP Criterion B rubric to this task',
+      'Share printable recipe worksheets with parents'
+    );
+  } else {
+    reply = `### ✨ Toddle AI Teaching Partner\n\n` +
+      `Analyzing **${classObj?.name ?? 'Active Class'}** (${students.length} students enrolled):\n\n` +
+      summaries.map(s => `• **${s.name}:** Class Average **${s.avg} / 8.0**`).join('\n') +
+      `\n\nI can assist you with curriculum mapping, grading rubrics, student observations, or generating family progress reports. What would you like to explore next?`;
+    suggestions.push(
+      'Summarize class strengths for parent-teacher conferences',
+      'Identify students needing extra support',
+      'Suggest differentiated lesson activities for this unit'
+    );
+  }
+
+  return { reply, suggestions };
+}

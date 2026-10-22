@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@apollo/client';
 import { useDispatch, useSelector } from 'react-redux';
 import { GET_TEACHER_CLASSES } from '../graphql/operations';
-import { selectClass } from '../store/uiSlice';
+import { selectClass, setActiveTab, setAiAssistantOpen, type AppTab } from '../store/uiSlice';
 import type { RootState } from '../store';
 import styles from './Header.module.css';
 
@@ -28,13 +28,13 @@ interface TeacherClassesData {
 }
 
 interface HeaderProps {
-  onToggleAnalytics: () => void;
-  analyticsOpen: boolean;
+  onToggleAnalytics?: () => void;
+  analyticsOpen?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onToggleAnalytics, analyticsOpen }) => {
+export const Header: React.FC<HeaderProps> = () => {
   const dispatch = useDispatch();
-  const { selectedClassId, selectedPeriodId } = useSelector((s: RootState) => s.ui);
+  const { selectedClassId, selectedPeriodId, activeTab } = useSelector((s: RootState) => s.ui);
 
   const { data } = useQuery<TeacherClassesData>(GET_TEACHER_CLASSES, {
     onCompleted: (d) => {
@@ -67,6 +67,14 @@ export const Header: React.FC<HeaderProps> = ({ onToggleAnalytics, analyticsOpen
   };
 
   const teacherName = data?.me?.name ?? 'Ms. Anita Rao';
+
+  const navItems: { id: AppTab; label: string; icon: string }[] = [
+    { id: 'comments', label: 'Report Comments', icon: '📝' },
+    { id: 'gradebook', label: 'Gradebook & Rubrics', icon: '📊' },
+    { id: 'portfolios', label: 'Portfolios & Notes', icon: '📁' },
+    { id: 'reportcards', label: 'Family Report Cards', icon: '📜' },
+    { id: 'analytics', label: '10-Hr BHAG Impact', icon: '🎯' },
+  ];
 
   return (
     <header className={styles.header}>
@@ -132,22 +140,33 @@ export const Header: React.FC<HeaderProps> = ({ onToggleAnalytics, analyticsOpen
             </div>
           </>
         )}
+
+        {/* Navigation Tabs */}
+        <nav className={styles.navTabs} aria-label="Main Navigation">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`${styles.navTab} ${activeTab === item.id ? styles.navTabActive : ''}`}
+              onClick={() => dispatch(setActiveTab(item.id))}
+              id={`nav-tab-${item.id}`}
+            >
+              <span aria-hidden="true">{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
       </div>
 
       <div className={styles.rightArea}>
         <button
           type="button"
-          className={`${styles.analyticsToggleBtn} ${analyticsOpen ? styles.analyticsToggleBtnActive : ''}`}
-          onClick={onToggleAnalytics}
-          aria-pressed={analyticsOpen}
-          id="btn-toggle-analytics"
+          className={styles.aiPartnerBtn}
+          onClick={() => dispatch(setAiAssistantOpen(true))}
+          id="btn-open-ai-partner"
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-          Time Saved
+          <span>✨</span>
+          <span>Toddle AI Partner</span>
         </button>
 
         <div className={styles.teacherBadge}>

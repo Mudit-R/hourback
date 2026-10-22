@@ -35,7 +35,14 @@ export const LogManualTimeInput = z.object({
   seconds: z.number().int().min(0).max(86400),
 });
 
+export const UpdateAssessmentResultInput = z.object({
+  resultId: z.string().uuid('Invalid result ID'),
+  level: z.number().int().min(1).max(8),
+  feedback: z.string().max(2000).optional(),
+});
+
 export type AddObservationInputType = z.infer<typeof AddObservationInput>;
 export type GenerateCommentsInputType = z.infer<typeof GenerateCommentsInput>;
 export type UpdateCommentInputType = z.infer<typeof UpdateCommentInput>;
 export type ApproveCommentInputType = z.infer<typeof ApproveCommentInput>;
+export type UpdateAssessmentResultInputType = z.infer<typeof UpdateAssessmentResultInput>;

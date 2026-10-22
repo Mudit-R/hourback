@@ -176,3 +176,64 @@ export const GET_TEACHER_CLASSES = gql`
     }
   }
 `;
+
+export const GET_CLASS_GRADEBOOK = gql`
+  query GetClassGradebook($classId: ID!, $periodId: ID!) {
+    classRoster(classId: $classId, periodId: $periodId) {
+      id
+      name
+      preferredName
+      evidence {
+        assessmentResults {
+          id
+          level
+          feedback
+          criterion {
+            id
+            name
+            maxLevel
+            sortOrder
+          }
+        }
+        observations {
+          id
+          text
+          tag
+          createdAt
+        }
+      }
+      reportComment(periodId: $periodId) {
+        id
+        status
+        draftText
+        finalText
+        groundednessScore
+      }
+    }
+  }
+`;
+
+export const UPDATE_ASSESSMENT_RESULT = gql`
+  mutation UpdateAssessmentResult($resultId: ID!, $level: Int!, $feedback: String) {
+    updateAssessmentResult(resultId: $resultId, level: $level, feedback: $feedback) {
+      id
+      level
+      feedback
+      criterion {
+        id
+        name
+        maxLevel
+      }
+    }
+  }
+`;
+
+export const ASK_AI_ASSISTANT = gql`
+  query AskAIAssistant($classId: ID!, $prompt: String!) {
+    askAIAssistant(classId: $classId, prompt: $prompt) {
+      reply
+      suggestions
+    }
+  }
+`;
+

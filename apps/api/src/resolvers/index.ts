@@ -8,6 +8,7 @@ import {
   ApproveCommentInput,
   RegenerateCommentInput,
   LogManualTimeInput,
+  UpdateAssessmentResultInput,
 } from '../validation/schemas';
 import { toGraphQLError } from '../validation/errors';
 
@@ -174,6 +175,15 @@ export const resolvers = {
       requireTeacher(ctx);
       return svc.getGenerationJob(args.jobId);
     },
+
+    askAIAssistant: async (
+      _parent: unknown,
+      args: { classId: string; prompt: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireTeacher(ctx);
+      return svc.askAIAssistant(args.classId, args.prompt);
+    },
   },
 
   Mutation: {
@@ -187,6 +197,18 @@ export const resolvers = {
       if (!parsed.success) throw toGraphQLError(parsed.error);
       const row = await svc.addObservation(parsed.data.studentId, parsed.data.text, parsed.data.tag);
       return mapObservation(row as Record<string, unknown>);
+    },
+
+    updateAssessmentResult: async (
+      _parent: unknown,
+      args: { resultId: string; level: number; feedback?: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireTeacher(ctx);
+      const parsed = UpdateAssessmentResultInput.safeParse(args);
+      if (!parsed.success) throw toGraphQLError(parsed.error);
+      const row = await svc.updateAssessmentResult(parsed.data.resultId, parsed.data.level, parsed.data.feedback);
+      return mapAssessmentResult(row as Record<string, unknown>);
     },
 
     generateComments: async (
