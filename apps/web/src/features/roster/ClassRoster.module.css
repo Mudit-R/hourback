@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--color-surface);
+  background: #ffffff;
   border-right: 1px solid var(--color-border);
 }
 
@@ -11,13 +11,14 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--spacing-3);
-  padding: var(--spacing-5) var(--spacing-5) var(--spacing-3);
+  padding: var(--spacing-5) var(--spacing-5) var(--spacing-4);
   border-bottom: 1px solid var(--color-border);
+  background: #ffffff;
 }
 
 .title {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
   letter-spacing: -0.02em;
 }
@@ -25,12 +26,13 @@
 .subtitle {
   font-size: 12px;
   color: var(--color-text-secondary);
-  margin-top: 2px;
+  margin-top: 3px;
+  font-weight: 500;
 }
 
 .progressBar {
   height: 3px;
-  background: var(--color-border);
+  background: var(--color-surface-2);
   flex-shrink: 0;
 }
 
@@ -52,7 +54,8 @@
   padding: 0 var(--spacing-4);
   height: 64px;
   cursor: pointer;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: #ffffff;
   transition: background-color var(--transition-fast);
   user-select: none;
 }
@@ -62,7 +65,7 @@
 }
 
 .rowSelected {
-  background: var(--color-primary-subtle) !important;
+  background: #eff6ff !important;
   border-left: 3px solid var(--color-primary);
 }
 
@@ -70,13 +73,14 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  color: white;
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
@@ -89,7 +93,7 @@
 
 .name {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -121,7 +125,7 @@
 
 .skeleton {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-surface) 0%, var(--color-surface-2) 50%, var(--color-surface) 100%);
+  background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }

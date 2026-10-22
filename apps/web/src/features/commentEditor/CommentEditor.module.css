@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
-  background: var(--color-surface);
+  background: #ffffff;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -49,21 +49,25 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: var(--radius-full);
   background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
   font-size: 11px;
   font-weight: 600;
+  color: var(--color-text-secondary);
 }
 
 .groundedGreen {
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.15);
+  color: #065f46;
+  background: #ecfdf5;
+  border-color: #a7f3d0;
 }
 
 .groundedAmber {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.15);
+  color: #92400e;
+  background: #fffbeb;
+  border-color: #fde68a;
 }
 
 .headerControls {
@@ -73,19 +77,22 @@
 }
 
 .select {
-  padding: 6px 10px;
-  background: var(--color-surface-2);
+  padding: 6px 12px;
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .select:focus {
   outline: none;
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-subtle);
+  color: var(--color-text-primary);
 }
 
 .body {
@@ -98,7 +105,7 @@
 
 .sectionTitle {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -108,35 +115,39 @@
 .sentenceBreakdown {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
 }
 
 .sentenceCard {
-  padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-surface);
+  padding: var(--spacing-4);
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   transition: all var(--transition-fast);
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .sentenceCard:hover {
   border-color: var(--color-primary);
-  background: rgba(99, 102, 241, 0.06);
+  background: #f8fafc;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
 }
 
 .sentenceCardActive {
   border-color: var(--color-primary) !important;
-  background: rgba(99, 102, 241, 0.14) !important;
+  background: #eff6ff !important;
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .sentenceText {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--color-text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
+  font-weight: 450;
 }
 
 .citationsList {
@@ -147,16 +158,16 @@
 }
 
 .citationTag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: var(--radius-sm);
-  background: var(--color-surface-2);
-  color: var(--color-primary-hover);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
 }
 
 .editorArea {
@@ -167,23 +178,24 @@
 
 .textarea {
   width: 100%;
-  min-height: 150px;
+  min-height: 140px;
   padding: var(--spacing-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius-md);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.6;
   resize: vertical;
-  transition: border-color var(--transition-fast);
+  transition: all var(--transition-fast);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-subtle);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
 }
 
 .editorMeta {
@@ -196,7 +208,7 @@
 
 .actionBar {
   padding: var(--spacing-4) var(--spacing-6);
-  background: var(--color-surface);
+  background: #ffffff;
   border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
@@ -204,6 +216,7 @@
   position: sticky;
   bottom: 0;
   z-index: 10;
+  box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.03);
 }
 
 .timer {
@@ -220,7 +233,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #10b981;
+  background: var(--color-success);
   animation: pulse 1.5s infinite;
 }
 
@@ -232,10 +245,10 @@
 
 .btnSecondary {
   padding: 8px 14px;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-text-primary);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
   transition: all var(--transition-fast);
@@ -243,18 +256,19 @@
 }
 
 .btnSecondary:hover {
-  background: var(--color-border);
-  color: #ffffff;
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: var(--color-text-primary);
 }
 
 .btnApprove {
   padding: 8px 18px;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--color-success);
   color: #ffffff;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.25);
   transition: all var(--transition-fast);
   cursor: pointer;
   display: flex;
@@ -263,8 +277,8 @@
 }
 
 .btnApprove:hover:not(:disabled) {
-  background: linear-gradient(135deg, #34d399, #10b981);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
+  background: var(--color-success-hover);
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.35);
   transform: translateY(-1px);
 }
 
@@ -284,9 +298,10 @@
   padding: var(--spacing-10);
   text-align: center;
   color: var(--color-text-muted);
+  background: var(--color-bg);
 }
 
 .emptyIcon {
   font-size: 40px;
-  opacity: 0.5;
+  color: var(--color-text-muted);
 }

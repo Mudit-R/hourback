@@ -1,39 +1,40 @@
 /* ===================================================================
-   HourBack — Design System
-   Modern, dense, high-contrast dark theme (Linear / Raycast aesthetic)
+   HourBack — Professional Design System (Light Theme Default)
+   Crisp, clean B2B SaaS aesthetic (Stripe / Linear / Notion inspired)
    =================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* ── Core Dark Theme Palette ── */
-  --color-bg:             #090d16;
-  --color-surface:        #0f172a;
-  --color-surface-2:      #172033;
-  --color-surface-3:      #1e293b;
-  --color-border:         #1e293b;
-  --color-border-subtle:  rgba(255, 255, 255, 0.07);
-  --color-border-focus:   #6366f1;
+  /* ── Core Light Theme Palette ── */
+  --color-bg:             #f8fafc; /* Crisp Slate-50 main canvas */
+  --color-surface:        #ffffff; /* Pure white cards and panels */
+  --color-surface-2:      #f1f5f9; /* Slate-100 secondary backgrounds */
+  --color-surface-3:      #e2e8f0; /* Slate-200 dividers and borders */
+  --color-border:         #e2e8f0; /* Crisp 1px borders */
+  --color-border-subtle:  #f1f5f9; /* Soft divider */
+  --color-border-focus:   #2563eb; /* Royal blue focus ring */
 
-  --color-text-primary:   #f8fafc;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted:     #64748b;
+  --color-text-primary:   #0f172a; /* Slate-900 sharp, high-contrast text */
+  --color-text-secondary: #475569; /* Slate-600 subheadings and secondary text */
+  --color-text-muted:     #94a3b8; /* Slate-400 captions and timestamps */
 
-  --color-primary:        #6366f1;
-  --color-primary-hover:  #818cf8;
-  --color-primary-subtle: rgba(99, 102, 241, 0.14);
+  /* ── Brand / Accent (Royal Blue - Trustworthy & Non-AI) ── */
+  --color-primary:        #2563eb; /* Indigo/Royal Blue 600 */
+  --color-primary-hover:  #1d4ed8; /* Blue 700 */
+  --color-primary-subtle: rgba(37, 99, 235, 0.08);
 
-  --color-success:        #10b981;
-  --color-success-hover:  #34d399;
-  --color-success-subtle: rgba(16, 185, 129, 0.14);
+  --color-success:        #059669; /* Emerald 600 */
+  --color-success-hover:  #047857; /* Emerald 700 */
+  --color-success-subtle: rgba(5, 150, 105, 0.09);
 
-  --color-warning:        #f59e0b;
-  --color-warning-subtle: rgba(245, 158, 11, 0.14);
+  --color-warning:        #d97706; /* Amber 600 */
+  --color-warning-subtle: rgba(217, 119, 6, 0.09);
 
-  --color-danger:         #ef4444;
-  --color-danger-subtle:  rgba(239, 68, 68, 0.14);
+  --color-danger:         #dc2626; /* Red 600 */
+  --color-danger-subtle:  rgba(220, 38, 38, 0.09);
 
-  /* ── Linear-Style Aliases ── */
+  /* ── Aliases ── */
   --bg-primary:     var(--color-bg);
   --bg-secondary:   var(--color-surface);
   --bg-elevated:    var(--color-surface-2);
@@ -41,17 +42,17 @@
 
   --border-subtle:  var(--color-border-subtle);
   --border-default: var(--color-border);
-  --border-strong:  rgba(255, 255, 255, 0.14);
+  --border-strong:  #cbd5e1;
 
   --text-primary:   var(--color-text-primary);
   --text-secondary: var(--color-text-secondary);
   --text-muted:     var(--color-text-muted);
-  --text-inverse:   #090d16;
+  --text-inverse:   #ffffff;
 
   --accent:         var(--color-primary);
   --accent-hover:   var(--color-primary-hover);
   --accent-subtle:  var(--color-primary-subtle);
-  --accent-glow:    rgba(99, 102, 241, 0.28);
+  --accent-glow:    rgba(37, 99, 235, 0.15);
 
   --green:          var(--color-success);
   --green-subtle:   var(--color-success-subtle);
@@ -60,19 +61,19 @@
   --red:            var(--color-danger);
   --red-subtle:     var(--color-danger-subtle);
 
-  /* ── Status Chips ── */
-  --chip-draft:       #94a3b8;
-  --chip-draft-bg:    rgba(148, 163, 184, 0.1);
-  --chip-draft-fg:    #94a3b8;
-  --chip-edited:      #f59e0b;
-  --chip-edited-bg:   rgba(245, 158, 11, 0.14);
-  --chip-edited-fg:   #f59e0b;
-  --chip-approved:    #10b981;
-  --chip-approved-bg: rgba(16, 185, 129, 0.14);
-  --chip-approved-fg: #10b981;
-  --chip-flagged:     #ef4444;
-  --chip-flagged-bg:  rgba(239, 68, 68, 0.14);
-  --chip-flagged-fg:  #ef4444;
+  /* ── Status Chips (Refined, Muted Badges) ── */
+  --chip-draft:       #475569;
+  --chip-draft-bg:    #f1f5f9;
+  --chip-draft-fg:    #475569;
+  --chip-edited:      #b45309;
+  --chip-edited-bg:   #fef3c7;
+  --chip-edited-fg:   #b45309;
+  --chip-approved:    #047857;
+  --chip-approved-bg: #d1fae5;
+  --chip-approved-fg: #047857;
+  --chip-flagged:     #b91c1c;
+  --chip-flagged-bg:  #fee2e2;
+  --chip-flagged-fg:  #b91c1c;
 
   /* ── Typography ── */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -102,21 +103,21 @@
 
   /* ── Radii ── */
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
   --radius-full: 9999px;
 
   --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --r-xl: 18px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
   --r-full: 9999px;
 
-  /* ── Shadows & Glows ── */
-  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md:   0 4px 18px rgba(0, 0, 0, 0.5);
-  --shadow-lg:   0 12px 36px rgba(0, 0, 0, 0.65);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.25);
+  /* ── Shadows (Natural, Subtle Light Elevation) ── */
+  --shadow-sm:   0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md:   0 4px 12px rgba(15, 23, 42, 0.07);
+  --shadow-lg:   0 12px 28px rgba(15, 23, 42, 0.1);
+  --shadow-glow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 
   /* ── Transitions ── */
   --transition-fast: 120ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -138,7 +139,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-bg);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -154,6 +155,7 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--color-bg);
 }
 
 /* Accessibility Focus Ring */
@@ -162,10 +164,10 @@ body {
   outline-offset: 1px;
 }
 
-/* Polished Scrollbars */
+/* Crisp Scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 ::-webkit-scrollbar {
@@ -176,11 +178,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: #cbd5e1;
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+  background: #94a3b8;
 }
 
 button {
@@ -198,16 +200,20 @@ input, select, textarea {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   outline: none;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 input:focus, select:focus, textarea:focus {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-subtle);
 }
 
 a {
-  color: var(--color-primary-hover);
+  color: var(--color-primary);
   text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
 }
 
 .sr-only {
@@ -225,11 +231,6 @@ a {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
 }
 
 .animate-fadeIn {

@@ -1,7 +1,7 @@
 .card {
-  background: var(--color-surface);
+  background: #ffffff;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: var(--spacing-5);
   display: flex;
   flex-direction: column;
@@ -30,8 +30,9 @@
 .metricBadge {
   font-size: 12px;
   font-weight: 700;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.15);
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
   padding: 2px 8px;
   border-radius: var(--radius-full);
 }
@@ -43,9 +44,9 @@
 }
 
 .statBox {
-  background: var(--color-bg);
+  background: #f8fafc;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: var(--spacing-3);
   display: flex;
   flex-direction: column;
@@ -54,9 +55,10 @@
 
 .statLabel {
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  font-weight: 600;
 }
 
 .statValue {
@@ -67,7 +69,7 @@
 }
 
 .statHighlight {
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .comparisonBarWrapper {
@@ -87,6 +89,7 @@
   width: 90px;
   color: var(--color-text-secondary);
   flex-shrink: 0;
+  font-weight: 500;
 }
 
 .barTrack {
@@ -99,13 +102,13 @@
 
 .barFillManual {
   height: 100%;
-  background: #f59e0b;
+  background: var(--color-warning);
   border-radius: var(--radius-full);
 }
 
 .barFillAssisted {
   height: 100%;
-  background: #10b981;
+  background: var(--color-success);
   border-radius: var(--radius-full);
 }
 
@@ -129,7 +132,7 @@
 .logManualBtn {
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-primary-hover);
+  color: var(--color-primary);
   text-decoration: underline;
   cursor: pointer;
   background: none;
@@ -138,5 +141,5 @@
 }
 
 .logManualBtn:hover {
-  color: #ffffff;
+  color: var(--color-primary-hover);
 }
