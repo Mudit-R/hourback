@@ -31,8 +31,17 @@ export const JobProgressBanner: React.FC = () => {
   }
 
   const job = data.generationJob;
-  const isFinished = job.status === 'completed' || job.status === 'partial' || job.status === 'failed';
-  const pct = job.total > 0 ? Math.round(((job.done + job.failed) / job.total) * 100) : 0;
+  const isFinished = job.status === 'completed' || job.status === 'partial' || job.status === 'failed' || (job.total > 0 && (job.done + job.failed) >= job.total);
+  const pct = job.total > 0 ? Math.min(100, Math.round(((job.done + job.failed) / job.total) * 100)) : 0;
+
+  React.useEffect(() => {
+    if (isFinished) {
+      const timer = setTimeout(() => {
+        dispatch(setActiveJob(null));
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [isFinished, dispatch]);
 
   return (
     <div

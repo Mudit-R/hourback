@@ -45,6 +45,8 @@ Return JSON only. No markdown, no explanation.`;
 
 import { MockProvider } from './mock';
 
+let quotaExhaustedUntil = 0;
+
 export class GeminiProvider implements LLMProvider {
   readonly name = 'gemini';
 
@@ -55,8 +57,13 @@ export class GeminiProvider implements LLMProvider {
       return new MockProvider('valid').generate(pack, validatorFeedback);
     }
 
+    // If quota was previously exhausted within the last 5 minutes, use fast grounded fallback
+    if (Date.now() < quotaExhaustedUntil) {
+      return new MockProvider('valid').generate(pack, validatorFeedback);
+    }
+
     const preferredModel = process.env['GEMINI_MODEL'] || 'gemini-3.8-flash';
-    const modelsToTry = [preferredModel, 'gemini-flash-latest', 'gemini-2.5-pro'];
+    const modelsToTry = [preferredModel, 'gemini-2.5-flash', 'gemini-2.5-pro'];
 
     for (const model of modelsToTry) {
       try {
@@ -85,6 +92,11 @@ export class GeminiProvider implements LLMProvider {
         if (!response.ok) {
           const text = await response.text();
           console.warn(`[GeminiProvider] ${model} returned ${response.status}: ${text.slice(0, 150)}`);
+          if (response.status === 429) {
+            console.warn('[GeminiProvider] 429 Quota Exhausted detected; caching for 5m and falling back immediately');
+            quotaExhaustedUntil = Date.now() + 5 * 60 * 1000;
+            break;
+          }
           continue;
         }
 
@@ -102,7 +114,7 @@ export class GeminiProvider implements LLMProvider {
       }
     }
 
-    console.warn('[GeminiProvider] All Gemini endpoints unavailable or rate-limited; gracefully falling back to grounded mock generator');
+    console.warn('[GeminiProvider] Gemini unavailable or rate-limited; gracefully falling back to grounded mock generator');
     return new MockProvider('valid').generate(pack, validatorFeedback);
   }
 }

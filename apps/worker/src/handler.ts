@@ -90,8 +90,10 @@ export async function processMessageData(data: {
     .first();
 
   if (existing) {
-    // Message already processed (redelivery) — ack silently
-    console.warn(`[worker] Idempotency: comment already exists for student=${studentId} period=${periodId}, skipping`);
+    // Message already processed (redelivery or existing comments in class) — ack silently and mark completed in job
+    console.warn(`[worker] Idempotency: comment already exists for student=${studentId} period=${periodId}, counting toward job completion`);
+    await db('generation_jobs').where({ id: jobId }).increment('done', 1);
+    await updateJobStatusIfComplete(jobId);
     return;
   }
 
