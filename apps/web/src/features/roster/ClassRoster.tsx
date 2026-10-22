@@ -8,6 +8,7 @@ import type { RootState } from '../../store';
 import { StatusChip } from '../../components/StatusChip';
 import { GenerateButton } from '../jobs/GenerateButton';
 import { AddStudentModal } from './AddStudentModal';
+import { ImportCsvModal } from './ImportCsvModal';
 import styles from './ClassRoster.module.css';
 
 interface Student {
@@ -32,6 +33,7 @@ export const ClassRoster: React.FC<ClassRosterProps> = ({ classId, periodId }) =
   const dispatch = useDispatch();
   const selectedId = useSelector((s: RootState) => s.ui.selectedStudentId);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [importCsvOpen, setImportCsvOpen] = useState(false);
 
   const { data, loading, error } = useQuery<{ classRoster: Student[] }>(GET_CLASS_ROSTER, {
     variables: { classId, periodId },
@@ -135,6 +137,19 @@ export const ClassRoster: React.FC<ClassRosterProps> = ({ classId, periodId }) =
             </svg>
             <span>Add Student</span>
           </button>
+          <button
+            type="button"
+            className={styles.addStudentBtn}
+            onClick={() => setImportCsvOpen(true)}
+            title="Upload roster and evidence from CSV or spreadsheet"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <span>Import CSV</span>
+          </button>
           <GenerateButton
             onGenerate={handleGenerate}
             generating={generating}
@@ -189,6 +204,14 @@ export const ClassRoster: React.FC<ClassRosterProps> = ({ classId, periodId }) =
         classId={classId}
         periodId={periodId}
         onStudentRegistered={(studentId) => dispatch(selectStudent(studentId))}
+      />
+
+      {/* Bulk Import CSV Modal */}
+      <ImportCsvModal
+        isOpen={importCsvOpen}
+        onClose={() => setImportCsvOpen(false)}
+        classId={classId}
+        periodId={periodId}
       />
     </div>
   );

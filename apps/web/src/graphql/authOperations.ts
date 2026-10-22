@@ -50,6 +50,12 @@ export const MUTATION_SIGNUP = gql`
   }
 `;
 
+export const MUTATION_BULK_IMPORT = gql`
+  mutation BulkImportStudents($classId: ID!, $students: [StudentImportInput!]!) {
+    bulkImportStudents(classId: $classId, students: $students)
+  }
+`;
+
 export const MUTATION_CREATE_CLASS = gql`
   mutation CreateClass($name: String!, $grade: String!, $subject: String!, $academicYear: String!) {
     createClass(name: $name, grade: $grade, subject: $subject, academicYear: $academicYear) {

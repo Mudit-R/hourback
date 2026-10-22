@@ -829,3 +829,49 @@ export async function getActivityFeed(classId?: string) {
   return items.slice(0, 15);
 }
 
+export async function bulkImportStudents(
+  classId: string,
+  students: Array<{ name: string; preferredName?: string; rubricLevel?: number; observation?: string }>,
+) {
+  const criteria = await db('criteria as c')
+    .join('assessments as a', 'c.assessment_id', 'a.id')
+    .join('units as u', 'a.unit_id', 'u.id')
+    .where('u.class_id', classId)
+    .select('c.id');
+
+  let count = 0;
+  for (const item of students) {
+    if (!item.name || !item.name.trim()) continue;
+    const studentId = uuidv4();
+    await db('students').insert({
+      id: studentId,
+      class_id: classId,
+      name: item.name.trim(),
+      preferred_name: item.preferredName?.trim() || null,
+    });
+
+    const level = Math.max(1, Math.min(8, item.rubricLevel || 4));
+    if (criteria.length > 0) {
+      const results = criteria.map((c: { id: string }) => ({
+        id: uuidv4(),
+        student_id: studentId,
+        criterion_id: c.id,
+        level,
+        feedback: 'Imported assessment standing.',
+      }));
+      await db('assessment_results').insert(results);
+    }
+
+    if (item.observation && item.observation.trim()) {
+      await db('observations').insert({
+        id: uuidv4(),
+        student_id: studentId,
+        text: item.observation.trim(),
+        tag: 'inquiry',
+      });
+    }
+    count++;
+  }
+  return count;
+}
+

@@ -212,6 +212,15 @@ export const resolvers = {
       return svc.signup(args.name, args.email, args.school, args.password);
     },
 
+    bulkImportStudents: async (
+      _parent: unknown,
+      args: { classId: string; students: Array<{ name: string; preferredName?: string; rubricLevel?: number; observation?: string }> },
+      ctx: GraphQLContext,
+    ) => {
+      requireTeacher(ctx);
+      return svc.bulkImportStudents(args.classId, args.students);
+    },
+
     createClass: async (
       _parent: unknown,
       args: { name: string; grade: string; subject: string; academicYear: string },

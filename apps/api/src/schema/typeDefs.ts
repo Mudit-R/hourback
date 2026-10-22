@@ -195,6 +195,13 @@ export const typeDefs = /* GraphQL */ `
     askAIAssistant(classId: ID!, prompt: String!): AIAssistantResponse!
   }
 
+  input StudentImportInput {
+    name: String!
+    preferredName: String
+    rubricLevel: Int
+    observation: String
+  }
+
   # ─── Mutations ────────────────────────────────────────────────────────────
   type Mutation {
     """Sign in with email and optional password."""
@@ -202,6 +209,9 @@ export const typeDefs = /* GraphQL */ `
 
     """Register a new educator account."""
     signup(name: String!, email: String!, school: String!, password: String): AuthPayload!
+
+    """Bulk import student roster, initial rubric levels, and observations from CSV/spreadsheet."""
+    bulkImportStudents(classId: ID!, students: [StudentImportInput!]!): Int!
 
     """Register a new class with automatic default criteria and reporting period."""
     createClass(name: String!, grade: String!, subject: String!, academicYear: String!): Class!
