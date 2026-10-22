@@ -510,7 +510,7 @@ export async function askAIAssistant(classId: string, prompt: string) {
       'Share printable recipe worksheets with parents'
     );
   } else {
-    reply = `### Toddle AI Teaching Partner\n\n` +
+    reply = `### HourBack AI Teaching Partner\n\n` +
       `Analyzing **${classObj?.name ?? 'Active Class'}** (${students.length} students enrolled):\n\n` +
       summaries.map(s => `• **${s.name}:** Class Average **${s.avg} / 8.0**`).join('\n') +
       `\n\nI can assist you with curriculum mapping, grading rubrics, student observations, or generating family progress reports. What would you like to explore next?`;
@@ -801,7 +801,7 @@ export async function getActivityFeed(classId?: string) {
       title: `Progress Report ${com.status === 'approved' ? 'Approved' : 'Drafted'}`,
       description: `Academic progress commentary ${com.status} for ${com.student_name}.`,
       timestamp: com.updated_at || com.created_at,
-      actor: 'Toddle AI / Educator',
+      actor: 'AI Assistant / Educator',
     });
   }
 

@@ -46,7 +46,7 @@ flowchart TB
         M4["Family Report Cards\n(Printable Academic Transcripts)"]
         M5["10-Hr BHAG Impact\n(Time Saved & Safety Analytics)"]
         M6["Classroom & Student Mgmt\n(Registration & Enrollment)"]
-        AIAssist["Toddle AI Teaching Partner\n(Slide-over Pedagogical Co-pilot)"]
+        AIAssist["HourBack AI Teaching Partner\n(Slide-over Pedagogical Co-pilot)"]
         Audit["System Updates & Audit\n(Live Activity Drawer)"]
         Nav --> M1 & M2 & M3 & M4 & M5 & M6
         Nav -.-> AIAssist & Audit
@@ -115,7 +115,7 @@ flowchart TB
 - **Student Roster Enrollment**: "+ Add Student" modal registers students directly into active classes and instantiates baseline rubric standing.
 - **Live Updates & Audit Drawer**: Real-time chronological audit trail of observations captured, grades recorded, reports approved, and enrollment events.
 
-### Toddle AI Teaching Partner (Slide-Over Drawer)
+### HourBack AI Teaching Partner (Slide-Over Drawer)
 - **Pedagogical Assistant**: Click the top-right button from any page to open a contextual co-pilot.
 - **Context-Aware Analytics**: Analyzes live class criteria data to suggest targeted student interventions, differentiated tasks, or parent-teacher conference talking points.
 
@@ -170,7 +170,7 @@ hourback/
 │   │   │   ├── reportcards/     # Official printable transcript cards
 │   │   │   ├── analytics/       # 10-Hr BHAG time saved telemetry
 │   │   │   ├── activity/        # Real-time system updates & audit drawer
-│   │   │   └── assistant/       # Toddle AI Teaching Partner drawer
+│   │   │   └── assistant/       # HourBack AI Teaching Partner drawer
 │   │   └── src/graphql/         # Apollo Client operations & cache policies
 │   └── worker/                  # Background validation & batch worker
 ├── packages/

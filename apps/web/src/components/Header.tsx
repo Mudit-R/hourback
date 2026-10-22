@@ -247,7 +247,7 @@ export const Header: React.FC = () => {
             <span>Updates</span>
           </button>
 
-          {/* Toddle AI Partner Drawer trigger */}
+          {/* AI Partner Drawer trigger */}
           <button
             type="button"
             className={styles.aiPartnerBtn}
@@ -258,7 +258,7 @@ export const Header: React.FC = () => {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
             </svg>
-            <span>Toddle AI Partner</span>
+            <span>HourBack AI Partner</span>
           </button>
 
           {/* Educator Account Dropdown */}

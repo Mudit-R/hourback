@@ -139,7 +139,7 @@ export const App: React.FC = () => {
         <div style={{ padding: 32, color: 'var(--color-text-muted)' }}>Loading classroom...</div>
       )}
 
-      {/* Toddle AI Partner Slide-over Drawer */}
+      {/* HourBack AI Partner Slide-over Drawer */}
       {aiAssistantOpen && selectedClassId && (
         <AIAssistantDrawer
           classId={selectedClassId}

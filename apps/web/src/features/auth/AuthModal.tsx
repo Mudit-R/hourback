@@ -69,7 +69,7 @@ export const AuthModal: React.FC = () => {
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <div className={styles.brandRow}>
-            <span className={styles.brandBadge}>Toddle Institutional Platform</span>
+            <span className={styles.brandBadge}>HourBack School Platform</span>
           </div>
           <h2 className={styles.title}>
             {authModalMode === 'signin' ? 'Educator Sign In' : 'Register Educator Account'}

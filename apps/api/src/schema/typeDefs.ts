@@ -191,7 +191,7 @@ export const typeDefs = /* GraphQL */ `
     """Poll job progress (used as subscription fallback)."""
     generationJob(jobId: ID!): GenerationJob
 
-    """Toddle AI Teaching Assistant Co-pilot for curriculum, insights, and parent communication."""
+    """HourBack AI Teaching Assistant Co-pilot for curriculum, insights, and parent communication."""
     askAIAssistant(classId: ID!, prompt: String!): AIAssistantResponse!
   }
 

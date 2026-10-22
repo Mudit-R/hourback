@@ -81,7 +81,7 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({ 
     <div className={styles.container}>
       <div className={styles.topBar}>
         <div className={styles.titleArea}>
-          <h2>Toddle BHAG Impact & Analytics</h2>
+          <h2>Educator Time Reclaimed & Impact Analytics</h2>
           <p className={styles.subtitle}>
             Tracking measurable educator time savings, groundedness fidelity, and deficit-language prevention.
           </p>
@@ -93,7 +93,7 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({ 
             <circle cx="12" cy="12" r="6" />
             <circle cx="12" cy="12" r="2" />
           </svg>
-          Toddle BHAG: Save 10+ Hours / Week
+          Core Mission: Reclaim 10+ Hours / Week
         </div>
       </div>
 

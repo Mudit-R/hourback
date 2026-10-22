@@ -129,7 +129,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
           </div>
 
           <div className={styles.infoBox}>
-            <strong>Automated Curriculum Provisioning:</strong> Registering this class provisions standard IB/MYP assessment criteria (Bands 1–8), initializes Semester 1 reporting periods, and connects to the Toddle AI Assistant.
+            <strong>Automated Curriculum Provisioning:</strong> Registering this class provisions standard IB/MYP assessment criteria (Bands 1–8), initializes Semester 1 reporting periods, and connects to the HourBack AI Assistant.
           </div>
 
           <div className={styles.footer}>
