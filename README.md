@@ -11,7 +11,7 @@
 
 ---
 
-## 🌐 Live Deployment
+## Live Deployment
 
 - **Production Platform**: [https://hourback-4y4yhiev2a-uc.a.run.app](https://hourback-4y4yhiev2a-uc.a.run.app)
 - **Hosted Infrastructure**: Google Cloud Run (Containerized Node.js 20 production image with auto-scaling to zero when idle)
@@ -21,38 +21,41 @@
 
 ---
 
-## 🎯 The Vision: Solving the Teacher Workload Crisis
+## The Vision: Solving the Teacher Workload Crisis
 
 Teachers today work **50+ hours every week**, with a crushing portion lost to fragmented systems, disconnected gradebooks, and 40–60 hours per term spent drafting high-stakes student progress comments.
 
 HourBack addresses this through a three-pronged architecture:
-1. **Unified Teaching Lifecycle**: Planning, criteria rubrics, anecdotal portfolios, official report cards, and family communication live in a single coherent workspace.
+1. **Unified Teaching Lifecycle**: Planning, criteria rubrics, anecdotal portfolios, official report cards, family communication, and class management live in a single coherent workspace.
 2. **Context-Aware AI Assistant**: An AI Teaching Partner grounded in real classroom observations and rubric scores that automates administrative overhead while elevating pedagogical practice.
 3. **Institutional Trust & Privacy**: Zero-PII anonymization tokenizers, strict deficit-language blocklists, and deterministic citation verification ensure 100% compliance with FERPA / COPPA standards.
 
 ---
 
-## 🚀 Platform Architecture & Modules
+## Platform Architecture & Core Modules
 
-The platform is organized into five unified educator modules plus a persistent AI assistant drawer:
+The platform provides end-to-end management of classrooms, student cohorts, grading rubrics, progress reports, and real-time audit trails:
 
 ```mermaid
 flowchart TB
     subgraph UI ["Teacher Workspace (React 18 + CSS Modules · Clean Light B2B Standard)"]
-        Nav["Unified Top Navigation Bar"]
-        M1["📝 Report Comments\n(Evidence Citations & Review)"]
-        M2["📊 Gradebook & Rubrics\n(Criterion Matrix & Live Scores)"]
-        M3["📁 Portfolios & Notes\n(Tagged Anecdotal Observation Feed)"]
-        M4["📜 Family Report Cards\n(Printable Academic Transcripts)"]
-        M5["🎯 10-Hr BHAG Impact\n(Time Saved & Safety Analytics)"]
-        AIAssist["✨ Toddle AI Teaching Partner\n(Slide-over Pedagogical Co-pilot)"]
-        Nav --> M1 & M2 & M3 & M4 & M5
-        Nav -.-> AIAssist
+        Nav["Unified Navigation & Account Controls"]
+        M1["Report Comments\n(Evidence Citations & Review)"]
+        M2["Gradebook & Rubrics\n(Criterion Matrix & Live Scores)"]
+        M3["Portfolios & Notes\n(Tagged Anecdotal Observation Feed)"]
+        M4["Family Report Cards\n(Printable Academic Transcripts)"]
+        M5["10-Hr BHAG Impact\n(Time Saved & Safety Analytics)"]
+        M6["Classroom & Student Mgmt\n(Registration & Enrollment)"]
+        AIAssist["Toddle AI Teaching Partner\n(Slide-over Pedagogical Co-pilot)"]
+        Audit["System Updates & Audit\n(Live Activity Drawer)"]
+        Nav --> M1 & M2 & M3 & M4 & M5 & M6
+        Nav -.-> AIAssist & Audit
     end
 
     subgraph API ["Application Server (Apollo Server Express 4)"]
         GQL["GraphQL Layer\n(Queries, Mutations & Subscriptions)"]
         DataLoader["DataLoader Engine\n(N+1 Query Elimination: 96% reduction)"]
+        AuthService["Auth & Class Provisioning Service"]
         AIEngine["AI Partner & Grounding Service"]
     end
 
@@ -64,64 +67,70 @@ flowchart TB
     end
 
     subgraph Database ["PostgreSQL 16 Database"]
-        Tables[("Classes · Students · Criteria · Assessment Results\nObservations · Comments · Citations · Review Logs")]
+        Tables[("Teachers · Classes · Students · Criteria · Assessment Results\nObservations · Comments · Citations · Review Logs")]
     end
 
-    M1 & M2 & M3 & M4 & M5 <--> GQL
-    AIAssist <--> GQL
+    M1 & M2 & M3 & M4 & M5 & M6 <--> GQL
+    AIAssist & Audit <--> GQL
     GQL --> DataLoader
     DataLoader <--> Tables
-    GQL --> AIEngine
+    GQL --> AuthService & AIEngine
     AIEngine --> PIIToken --> LLM --> Guard --> Hydrate --> Tables
 ```
 
 ---
 
-### Module 1: 📝 Report Comments & Grounded AI Copilot
+### Module 1: Report Comments & Grounded AI Copilot
 - **Sentence-Level Evidence Citations**: Every sentence produced cites explicit evidence IDs from PostgreSQL (rubric levels or classroom observations).
 - **Interactive Sentence Hover**: Hovering over any sentence in the review editor dynamically highlights the corresponding evidence card in the right-hand panel.
 - **Voice Dictation Integration**: Native Web Speech API integration allows teachers to dictate feedback naturally.
 - **Tone & Length Customization**: Dynamic tone presets (*Balanced & Constructive*, *Growth-Mindset Focused*, *Celebratory & Encouraging*) and length controls (*Concise 60-80 words*, *Standard 120-150 words*, *Detailed 180-220 words*).
 - **Zero-PII Tokenizer**: Anonymizes student names (`STUDENT_1`) before prompt serialization; re-hydrates names in-memory upon database commit.
 
-### Module 2: 📊 Gradebook & Criteria Matrix
+### Module 2: Interactive Gradebook & Criteria Matrix
 - **Curriculum Strands**: Manages multi-criterion rubrics (*Conceptual Understanding*, *Problem-Solving Strategies*, *Mathematical Communication*, *Self-Management & Reflection* with 1–8 IB/MYP-aligned achievement bands).
 - **Interactive Gradebook Grid**: 30-student class roster matrix with inline level adjustments.
 - **Immediate Persistence**: Changes instantly synchronize via GraphQL mutations (`updateAssessmentResult`) to PostgreSQL with sub-15ms latency.
 - **Cohort Intelligence**: Real-time class rubric averages, graded strand counts, and progress trackers.
 
-### Module 3: 📁 Classroom Observations & Student Portfolios
+### Module 3: Classroom Observations & Student Portfolios
 - **Qualitative Evidence Feed**: Centralized repository of tagged classroom observations across key learning dimensions (*Mathematics*, *Collaboration*, *Writing*, *Inquiry*).
 - **Real-Time Note Capture**: Modal dialog for capturing anecdotal evidence with automatic student linking and category tagging.
 - **Evidence-to-Report Linkage**: Observations feed directly into the Grounding Engine to provide qualitative context for report comments.
 
-### Module 4: 📜 Family Report Cards & Printable Transcripts
+### Module 4: Family Report Cards & Printable Transcripts
 - **Official Institutional Transcripts**: Formatted for Delhi International School with official grading scale definitions, achievement band descriptors, and teacher narrative reflections.
 - **Dual Sign-Off System**: Homeroom Teacher and Head of School signature blocks for audit compliance.
-- **Print & Export**: 1-click **Print Report** (optimized via `@media print` stylesheets), **Export CSV** (generates and downloads real student data), and **Publish to Toddle Portal** simulation.
+- **Print & Export**: 1-click **Print Report** (optimized via `@media print` stylesheets), **Export CSV** (generates and downloads real student data), and **Publish to Family Portal** simulation.
 
-### Module 5: 🎯 10-Hr BHAG Impact & Analytics Dashboard
+### Module 5: 10-Hr BHAG Impact & Analytics Dashboard
 - **Quantified Time Savings**: Measures teacher review duration via client-side stopwatches compared against manual baseline (16 seconds vs 6 minutes 40 seconds per student).
 - **Evidence Grounding Metric**: 100% verifiable citation tracking across all generated comments.
 - **Safety Shield Audit**: Tracks zero-PII redaction events and deficit-language blocks prevented (24 prevented interventions).
 - **Cohort Strand Performance**: Visual bar charts breakdown student achievement distribution across all curriculum criteria.
 
-### ✨ Toddle AI Teaching Partner (Slide-Over Drawer)
+### Module 6: Educator Authentication, Class Registration & Live Audit
+- **Educator Auth & Multi-Profile Support**: Sign in, educator registration, and 1-click verified educator profiles (Ms. Anita Rao, Mr. David Chen, Dr. Sarah Jenkins) with session persistence and account switching.
+- **Classroom Registration Wizard**: "+ New Class" modal provisions curriculum framework standards, automatically sets up IB/MYP criteria rubrics (Bands 1–8), and connects reporting periods.
+- **Student Roster Enrollment**: "+ Add Student" modal registers students directly into active classes and instantiates baseline rubric standing.
+- **Live Updates & Audit Drawer**: Real-time chronological audit trail of observations captured, grades recorded, reports approved, and enrollment events.
+
+### Toddle AI Teaching Partner (Slide-Over Drawer)
 - **Pedagogical Assistant**: Click the top-right button from any page to open a contextual co-pilot.
 - **Context-Aware Analytics**: Analyzes live class criteria data to suggest targeted student interventions, differentiated tasks, or parent-teacher conference talking points.
 
 ---
 
-## 🎨 Design Philosophy: Clean Light B2B SaaS
+## Design Philosophy: Clean Light B2B SaaS
 
 The interface adheres strictly to modern, human-first B2B SaaS standards (Linear, Notion, Stripe):
 - **Default Light Palette**: Pure Slate-50 background (`#f8fafc`), crisp card borders (`#e2e8f0`), neutral Slate-900 typography (`#0f172a`), and disciplined Indigo-600 accents (`#4f46e5`).
-- **Zero AI Clichés**: No dark neon purple backgrounds, no glowing gradient badges, no gimmick animations.
+- **Zero AI Clichés & Zero Emojis**: Clean inline SVGs for all actions and statuses, with no dark neon purple backgrounds, no glowing gradient badges, and no gimmick animations.
 - **Information Density**: Designed for power-user teachers who need high information density, quick keyboard accessibility, and zero visual clutter.
 
 ---
 
-## 🔬 Measured Benchmarks & Evaluation Results
+## Measured Benchmarks & Evaluation Results
 
 All performance metrics can be verified locally via scripts in `/bench` and `/evals`:
 
@@ -136,7 +145,7 @@ All performance metrics can be verified locally via scripts in `/bench` and `/ev
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 hourback/
@@ -146,19 +155,23 @@ hourback/
 │   │   ├── src/loaders/         # Composite DataLoader batching
 │   │   ├── src/resolvers/       # GraphQL Query, Mutation & Type resolvers
 │   │   ├── src/schema/          # GraphQL SDL schema definitions
-│   │   └── src/services/        # Comment generation, AI Partner & analytics
+│   │   └── src/services/        # Comment generation, auth, class mgmt & analytics
 │   ├── web/                     # React 18 SPA (TypeScript + CSS Modules)
 │   │   ├── src/components/      # Header, Navigation, StatusChip primitives
+│   │   ├── src/context/         # AuthContext for multi-profile educator sessions
 │   │   ├── src/features/
-│   │   │   ├── roster/          # Student roster & cohort filters
+│   │   │   ├── auth/            # Sign in, registration & quick-login modal
+│   │   │   ├── classes/         # Class registration & settings wizard
+│   │   │   ├── roster/          # Student roster, filters & enrollment modal
 │   │   │   ├── editor/          # Grounded sentence review editor
 │   │   │   ├── evidence/        # Real-time evidence pack & notes modal
 │   │   │   ├── gradebook/       # Interactive criteria matrix & rubric scores
 │   │   │   ├── portfolios/      # Classroom observation feed & capture
 │   │   │   ├── reportcards/     # Official printable transcript cards
 │   │   │   ├── analytics/       # 10-Hr BHAG time saved telemetry
+│   │   │   ├── activity/        # Real-time system updates & audit drawer
 │   │   │   └── assistant/       # Toddle AI Teaching Partner drawer
-│   │   └── src/graphql/         # Apollo Client queries & mutations
+│   │   └── src/graphql/         # Apollo Client operations & cache policies
 │   └── worker/                  # Background validation & batch worker
 ├── packages/
 │   ├── llm/                     # Multi-provider LLM abstraction (Gemini 2.5, Mock)
@@ -171,7 +184,7 @@ hourback/
 
 ---
 
-## 🛠️ Local Development Quickstart
+## Local Development Quickstart
 
 ### 1. Prerequisites
 - Node.js 20+
@@ -207,5 +220,5 @@ npm run dev
 
 ---
 
-## 📜 License
+## License
 Built with pedagogical alignment and rigorous engineering principles. Licensed under the MIT License.
