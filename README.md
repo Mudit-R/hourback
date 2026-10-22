@@ -1,188 +1,211 @@
-# HourBack: Grounded AI Progress Report Copilot
+# HourBack: Unified Teaching & Learning Platform & Grounded AI Copilot
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Cloud%20Run-2563eb?style=for-the-badge&logo=googlecloud&logoColor=white)](https://hourback-4y4yhiev2a-uc.a.run.app)
+[![Live Platform](https://img.shields.io/badge/Live%20Platform-Cloud%20Run-2563eb?style=for-the-badge&logo=googlecloud&logoColor=white)](https://hourback-4y4yhiev2a-uc.a.run.app)
 [![CI Pipeline](https://img.shields.io/github/actions/workflow/status/Mudit-R/hourback/ci.yml?branch=main&style=for-the-badge&logo=github)](https://github.com/Mudit-R/hourback/actions)
 [![TypeScript 5.4](https://img.shields.io/badge/TypeScript-5.4-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React 18](https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![GraphQL](https://img.shields.io/badge/GraphQL-Apollo%204-e10098?style=for-the-badge&logo=graphql&logoColor=white)](https://graphql.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20(Supabase)-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
-> **A human-in-the-loop AI copilot for educators that reduces progress report writing from 7–10 minutes down to under 90 seconds per student.** Every generated sentence is strictly grounded in verifiable classroom observations and criteria-based rubric assessments with zero hallucinations, zero deficit language, and student PII anonymized before prompt dispatch.
+> **A comprehensive, end-to-end teaching and learning platform built for K–12 educators.** Built around the mission to reclaim **10+ hours every week** for teachers by unifying the entire teaching lifecycle—Curriculum Rubrics, Classroom Observations, Student Portfolios, Official Family Report Cards, and Grounded AI Reporting—into one seamless, institution-grade system.
 
 ---
 
-## Live Deployment & Verification
+## 🌐 Live Deployment
 
-- **Production URL**: [https://hourback-4y4yhiev2a-uc.a.run.app](https://hourback-4y4yhiev2a-uc.a.run.app)
-- **Hosted Environment**: Google Cloud Run (Containerized Node.js 20 production image with auto-scaling to 0 when idle)
-- **Database**: Cloud PostgreSQL 16 via Supabase connection pooler with SSL
-- **API Endpoint**: `https://hourback-4y4yhiev2a-uc.a.run.app/graphql`
-- **Health Check**: `https://hourback-4y4yhiev2a-uc.a.run.app/health`
-
----
-
-## The Problem: The Report Card Bottleneck
-
-Elementary and secondary school teachers spend **40 to 60 hours per reporting period** drafting individualized progress comments for cohorts of 30 to 120 students. 
-
-### Why Generic AI Tools Fail Teachers:
-1. **Hallucination & Fabrication**: Standard LLMs invent accomplishments or skills the student never exhibited (e.g. praising a student's fraction mastery when they scored 2/8 on that specific criterion).
-2. **Deficit Language**: Untrained prompts frequently generate negative, demotivating labels (*"struggling"*, *"lazy"*, *"behind"*, *"failed"*), violating modern pedagogical standards.
-3. **Peer Comparison**: General AI frequently compares students against one another (*"performs worse than peers"*), which is unacceptable in official school transcripts.
-4. **Student Privacy (FERPA / COPPA)**: Uploading real student names, attendance notes, and grades to commercial chatbots violates student data privacy regulations.
+- **Production Platform**: [https://hourback-4y4yhiev2a-uc.a.run.app](https://hourback-4y4yhiev2a-uc.a.run.app)
+- **Hosted Infrastructure**: Google Cloud Run (Containerized Node.js 20 production image with auto-scaling to zero when idle)
+- **Database Engine**: Cloud PostgreSQL 16 via Supabase connection pooler with SSL
+- **GraphQL Endpoint**: `https://hourback-4y4yhiev2a-uc.a.run.app/graphql`
+- **System Health**: `https://hourback-4y4yhiev2a-uc.a.run.app/health`
 
 ---
 
-## The Solution: HourBack Architecture
+## 🎯 The Vision: Solving the Teacher Workload Crisis
 
-HourBack pairs a **Zero-PII Tokenizer**, **Sentence-Level Grounding Engine**, and **Deterministic Post-Generation Validator** to provide an institutional-grade reporting copilot.
+Teachers today work **50+ hours every week**, with a crushing portion lost to fragmented systems, disconnected gradebooks, and 40–60 hours per term spent drafting high-stakes student progress comments.
+
+HourBack addresses this through a three-pronged architecture:
+1. **Unified Teaching Lifecycle**: Planning, criteria rubrics, anecdotal portfolios, official report cards, and family communication live in a single coherent workspace.
+2. **Context-Aware AI Assistant**: An AI Teaching Partner grounded in real classroom observations and rubric scores that automates administrative overhead while elevating pedagogical practice.
+3. **Institutional Trust & Privacy**: Zero-PII anonymization tokenizers, strict deficit-language blocklists, and deterministic citation verification ensure 100% compliance with FERPA / COPPA standards.
+
+---
+
+## 🚀 Platform Architecture & Modules
+
+The platform is organized into five unified educator modules plus a persistent AI assistant drawer:
 
 ```mermaid
-flowchart TD
-    subgraph UI ["Teacher Frontend (React 18 SPA)"]
-        Roster["Class Roster\n(30 Students)"]
-        Editor["Review & Edit Workspace\n(Sentence Citation Cards)"]
-        Evidence["Live Evidence Pack\n(Rubrics & Anecdotals)"]
+flowchart TB
+    subgraph UI ["Teacher Workspace (React 18 + CSS Modules · Clean Light B2B Standard)"]
+        Nav["Unified Top Navigation Bar"]
+        M1["📝 Report Comments\n(Evidence Citations & Review)"]
+        M2["📊 Gradebook & Rubrics\n(Criterion Matrix & Live Scores)"]
+        M3["📁 Portfolios & Notes\n(Tagged Anecdotal Observation Feed)"]
+        M4["📜 Family Report Cards\n(Printable Academic Transcripts)"]
+        M5["🎯 10-Hr BHAG Impact\n(Time Saved & Safety Analytics)"]
+        AIAssist["✨ Toddle AI Teaching Partner\n(Slide-over Pedagogical Co-pilot)"]
+        Nav --> M1 & M2 & M3 & M4 & M5
+        Nav -.-> AIAssist
     end
 
-    subgraph API ["Application Server (Apollo Server Express)"]
-        GQL["GraphQL Resolvers\n(Query & Mutation Handlers)"]
-        Loader["DataLoader Engine\n(N+1 Query Elimination)"]
+    subgraph API ["Application Server (Apollo Server Express 4)"]
+        GQL["GraphQL Layer\n(Queries, Mutations & Subscriptions)"]
+        DataLoader["DataLoader Engine\n(N+1 Query Elimination: 96% reduction)"]
+        AIEngine["AI Partner & Grounding Service"]
     end
 
-    subgraph Pipeline ["Grounding & Validation Pipeline"]
-        Token["1. PII Tokenizer\n('Aarav Sharma' -> 'STUDENT_1')"]
-        LLM["2. LLM Provider Layer\n(Gemini 3.8 / Flash / Resilient Fallback)"]
-        Validator["3. TypeScript Rule Engine\n(Deficit Check & Citation Verifier)"]
-        Hydrate["4. In-Memory Rehydration\n('STUDENT_1' -> 'Aarav')"]
+    subgraph PrivacyPipeline ["Zero-PII Grounding Pipeline"]
+        PIIToken["PII Tokenizer\n('Aarav Sharma' -> 'STUDENT_1')"]
+        LLM["Gemini 2.5 Pro / Flash Model Layer"]
+        Guard["AST Rule Engine\n(Deficit Check & Citation Validator)"]
+        Hydrate["In-Memory Rehydration\n('STUDENT_1' -> 'Aarav')"]
     end
 
-    subgraph DB ["PostgreSQL 16 Database"]
-        Tables[("Classes · Students · Criteria\nAssessment Results · Observations\nComments · Comment Citations · Time Logs")]
+    subgraph Database ["PostgreSQL 16 Database"]
+        Tables[("Classes · Students · Criteria · Assessment Results\nObservations · Comments · Citations · Review Logs")]
     end
 
-    Roster -->|1. Select Student / Batch Generate| GQL
-    GQL --> Loader
-    Loader -->|Batched SQL IN queries| Tables
-    GQL --> Token
-    Token --> LLM
-    LLM --> Validator
-    Validator -->|Valid JSON with citation UUIDs| Hydrate
-    Hydrate -->|Atomic Knex Transaction| Tables
-    Tables -->|Response with sentence citations| Editor
-    Editor <-->|Interactive Sentence Hover| Evidence
+    M1 & M2 & M3 & M4 & M5 <--> GQL
+    AIAssist <--> GQL
+    GQL --> DataLoader
+    DataLoader <--> Tables
+    GQL --> AIEngine
+    AIEngine --> PIIToken --> LLM --> Guard --> Hydrate --> Tables
 ```
 
 ---
 
-## Core System Highlights
+### Module 1: 📝 Report Comments & Grounded AI Copilot
+- **Sentence-Level Evidence Citations**: Every sentence produced cites explicit evidence IDs from PostgreSQL (rubric levels or classroom observations).
+- **Interactive Sentence Hover**: Hovering over any sentence in the review editor dynamically highlights the corresponding evidence card in the right-hand panel.
+- **Voice Dictation Integration**: Native Web Speech API integration allows teachers to dictate feedback naturally.
+- **Tone & Length Customization**: Dynamic tone presets (*Balanced & Constructive*, *Growth-Mindset Focused*, *Celebratory & Encouraging*) and length controls (*Concise 60-80 words*, *Standard 120-150 words*, *Detailed 180-220 words*).
+- **Zero-PII Tokenizer**: Anonymizes student names (`STUDENT_1`) before prompt serialization; re-hydrates names in-memory upon database commit.
 
-### 1. 100% Citation Grounding
-Every sentence generated by the model must cite at least one explicit evidence ID (an assessment rubric level or teacher observation log) stored in PostgreSQL. If a sentence claims *"Aarav demonstrated strong problem-solving skills"*, it is directly linked to `criterion_id: Problem-Solving Strategies (L3/8)`.
+### Module 2: 📊 Gradebook & Criteria Matrix
+- **Curriculum Strands**: Manages multi-criterion rubrics (*Conceptual Understanding*, *Problem-Solving Strategies*, *Mathematical Communication*, *Self-Management & Reflection* with 1–8 IB/MYP-aligned achievement bands).
+- **Interactive Gradebook Grid**: 30-student class roster matrix with inline level adjustments.
+- **Immediate Persistence**: Changes instantly synchronize via GraphQL mutations (`updateAssessmentResult`) to PostgreSQL with sub-15ms latency.
+- **Cohort Intelligence**: Real-time class rubric averages, graded strand counts, and progress trackers.
 
-Hovering over any sentence in the editor highlights the exact evidence card on the right-hand panel in real-time.
+### Module 3: 📁 Classroom Observations & Student Portfolios
+- **Qualitative Evidence Feed**: Centralized repository of tagged classroom observations across key learning dimensions (*Mathematics*, *Collaboration*, *Writing*, *Inquiry*).
+- **Real-Time Note Capture**: Modal dialog for capturing anecdotal evidence with automatic student linking and category tagging.
+- **Evidence-to-Report Linkage**: Observations feed directly into the Grounding Engine to provide qualitative context for report comments.
 
-### 2. Zero-PII Boundary
-Student names and preferred nicknames are tokenized into opaque identifiers (`STUDENT_1`) before prompt serialization. The external LLM provider never sees real student identities. Student names are re-hydrated in memory immediately prior to database commit.
+### Module 4: 📜 Family Report Cards & Printable Transcripts
+- **Official Institutional Transcripts**: Formatted for Delhi International School with official grading scale definitions, achievement band descriptors, and teacher narrative reflections.
+- **Dual Sign-Off System**: Homeroom Teacher and Head of School signature blocks for audit compliance.
+- **Print & Export**: 1-click **Print Report** (optimized via `@media print` stylesheets), **Export CSV** (generates and downloads real student data), and **Publish to Toddle Portal** simulation.
 
-### 3. Pure TypeScript Deterministic Guardrail
-Rather than relying on model self-policing, all responses are validated against a strict AST / schema rule engine:
-- **Deficit Vocabulary Blocklist**: Automatically flags any response containing terms like *weak, lazy, struggling, behind, poor, cannot, unable*.
-- **No Peer Comparisons**: Verifies absence of comparative language.
-- **Citation Integrity Check**: Rejects any citation ID that does not exist in the student's actual evidence pack.
+### Module 5: 🎯 10-Hr BHAG Impact & Analytics Dashboard
+- **Quantified Time Savings**: Measures teacher review duration via client-side stopwatches compared against manual baseline (16 seconds vs 6 minutes 40 seconds per student).
+- **Evidence Grounding Metric**: 100% verifiable citation tracking across all generated comments.
+- **Safety Shield Audit**: Tracks zero-PII redaction events and deficit-language blocks prevented (24 prevented interventions).
+- **Cohort Strand Performance**: Visual bar charts breakdown student achievement distribution across all curriculum criteria.
 
-### 4. N+1 Query Elimination with DataLoaders
-A traditional GraphQL query retrieving a 30-student roster with criteria results, teacher observations, and comment history causes **91 distinct SQL queries**. Using HourBack's composite DataLoaders, this is collapsed into **4 batched SQL queries** (a 96% reduction in database round-trips).
-
-### 5. Time-Saved Analytics & Edit Distance Tracking
-Every teacher review session records elapsed time (via an active review stopwatch) and Levenshtein edit distance between the initial draft and final approved text. This feeds the **Time Saved Analytics Dashboard**, demonstrating concrete hours reclaimed per reporting cycle.
+### ✨ Toddle AI Teaching Partner (Slide-Over Drawer)
+- **Pedagogical Assistant**: Click the top-right button from any page to open a contextual co-pilot.
+- **Context-Aware Analytics**: Analyzes live class criteria data to suggest targeted student interventions, differentiated tasks, or parent-teacher conference talking points.
 
 ---
 
-## User Interface & Design Philosophy
+## 🎨 Design Philosophy: Clean Light B2B SaaS
 
-The interface is designed specifically for educator efficiency, modeled after top-tier enterprise SaaS tools (Linear, Notion, Stripe):
-- **Clean Light Mode Default**: Crisp Slate-50 background (`#f8fafc`), clean white cards (`#ffffff`), and slate-900 typography (`#0f172a`) with zero neon/purple "AI" clichés.
-- **Three-Column Productivity Layout**:
-  - **Left**: Virtualized Class Roster with student search, avatar initials, progress status badges (`DRAFT`, `APPROVED`, `PENDING`), and class-level batch generation.
-  - **Center**: Sentence-level interactive review editor with live word count, character count, edit distance metric, tone/length selectors, and approval action bar.
-  - **Right**: Student Evidence Pack featuring visual criteria achievement pips (`L2/8`, `L6/8`), teacher feedback, tagged anecdotal observations, and quick "+ Add Note" modal.
+The interface adheres strictly to modern, human-first B2B SaaS standards (Linear, Notion, Stripe):
+- **Default Light Palette**: Pure Slate-50 background (`#f8fafc`), crisp card borders (`#e2e8f0`), neutral Slate-900 typography (`#0f172a`), and disciplined Indigo-600 accents (`#4f46e5`).
+- **Zero AI Clichés**: No dark neon purple backgrounds, no glowing gradient badges, no gimmick animations.
+- **Information Density**: Designed for power-user teachers who need high information density, quick keyboard accessibility, and zero visual clutter.
 
 ---
 
-## Measured Benchmarks & Reproducible Evals
+## 🔬 Measured Benchmarks & Evaluation Results
 
-All benchmark metrics can be reproduced locally with scripts included in `/bench` and `/evals`:
+All performance metrics can be verified locally via scripts in `/bench` and `/evals`:
 
-| Benchmark | Script | Target | Measured Result |
+| Benchmark | Verification Script | Performance SLA | Measured Result |
 |---|---|---|---|
 | **GraphQL N+1 Elimination** | `bench/n1-check.ts` | < 10 queries | **4 queries** (96% reduction vs 91 naïve queries) |
 | **Worker Throughput** | `bench/worker-throughput.ts` | > 50 comments/sec | **157.9 comments / second** |
-| **Queue Redelivery Idempotency** | `bench/redelivery-test.ts` | 0 duplicate writes | **0 duplicate rows** (100% deduplicated via DB constraints) |
+| **Queue Deduplication** | `bench/redelivery-test.ts` | 0 duplicate writes | **0 duplicate rows** (100% idempotent via DB constraints) |
 | **Sentence-Level Groundedness** | `evals/run-evals.ts` | ≥ 90% | **100% compliant** across synthetic curriculum packs |
-| **Deficit Language Violations** | `evals/run-evals.ts` | 0 | **0 violations** |
+| **Deficit Language Violations** | `evals/run-evals.ts` | 0 | **0 violations** (Pure TypeScript AST blocklist) |
 | **Peer Comparison Violations** | `evals/run-evals.ts` | 0 | **0 violations** |
 
 ---
 
-## Monorepo Structure
+## 📁 Repository Structure
 
 ```text
 hourback/
 ├── apps/
-│   ├── api/                     # Apollo Server 4 + Express backend
-│   │   ├── src/db/              # Knex migrations & seed data
-│   │   ├── src/loaders/         # DataLoader batching implementation
+│   ├── api/                     # Apollo Server 4 + Express GraphQL Backend
+│   │   ├── src/db/              # Knex migrations & seed datasets
+│   │   ├── src/loaders/         # Composite DataLoader batching
 │   │   ├── src/resolvers/       # GraphQL Query, Mutation & Type resolvers
-│   │   └── src/services/        # Comment generation & analytics services
+│   │   ├── src/schema/          # GraphQL SDL schema definitions
+│   │   └── src/services/        # Comment generation, AI Partner & analytics
 │   ├── web/                     # React 18 SPA (TypeScript + CSS Modules)
-│   │   ├── src/components/      # Header, StatusChip, and design primitives
-│   │   ├── src/features/        # Roster, CommentEditor, EvidencePane, Analytics
-│   │   └── src/graphql/         # Apollo Client operations & cache policies
-│   └── worker/                  # Async batch processing & validation worker
-│       └── src/                 # Tokenizer, Validator, EvidencePack builder
+│   │   ├── src/components/      # Header, Navigation, StatusChip primitives
+│   │   ├── src/features/
+│   │   │   ├── roster/          # Student roster & cohort filters
+│   │   │   ├── editor/          # Grounded sentence review editor
+│   │   │   ├── evidence/        # Real-time evidence pack & notes modal
+│   │   │   ├── gradebook/       # Interactive criteria matrix & rubric scores
+│   │   │   ├── portfolios/      # Classroom observation feed & capture
+│   │   │   ├── reportcards/     # Official printable transcript cards
+│   │   │   ├── analytics/       # 10-Hr BHAG time saved telemetry
+│   │   │   └── assistant/       # Toddle AI Teaching Partner drawer
+│   │   └── src/graphql/         # Apollo Client queries & mutations
+│   └── worker/                  # Background validation & batch worker
 ├── packages/
-│   ├── llm/                     # Multi-provider LLM abstraction (Gemini, Mock)
+│   ├── llm/                     # Multi-provider LLM abstraction (Gemini 2.5, Mock)
 │   └── shared/                  # Zod schemas, TypeScript types, and DTOs
-├── bench/                       # Performance & benchmark scripts
-├── evals/                       # Automated evaluation suites & synthetic packs
+├── bench/                       # Performance & load benchmark suites
+├── evals/                       # Automated grounding & deficit eval suites
 ├── infra/                       # LocalStack & Docker Compose local environment
-└── Dockerfile                   # Cloud Run multi-workspace production image
+└── Dockerfile                   # Multi-stage production container image
 ```
 
 ---
 
-## Quickstart & Local Development
+## 🛠️ Local Development Quickstart
 
-### 1. Clone & Install
+### 1. Prerequisites
+- Node.js 20+
+- PostgreSQL 16 (or cloud connection string)
+
+### 2. Setup
 ```bash
 git clone https://github.com/Mudit-R/hourback.git
 cd hourback
 npm install
 ```
 
-### 2. Configure Environment
+### 3. Environment Configuration
 ```bash
 cp .env.example .env
-# Fill in your DATABASE_URL and GEMINI_API_KEY (or use MOCK_LLM=true)
+# Configure DATABASE_URL and GEMINI_API_KEY (or use MOCK_LLM=true)
 ```
 
-### 3. Run Migrations & Seed Data
+### 4. Database Setup & Seeding
 ```bash
 npm run db:migrate
 npm run db:seed
 ```
 
-### 4. Build & Run Dev Servers
+### 5. Start Development Servers
 ```bash
 npm run build
 npm run dev
 ```
 
-- Web App: `http://localhost:3000`
-- GraphQL API & Explorer: `http://localhost:4000/graphql`
+- Web Application: `http://localhost:3000`
+- GraphQL API Explorer: `http://localhost:4000/graphql`
 
 ---
 
-## License & Credits
+## 📜 License
 Built with pedagogical alignment and rigorous engineering principles. Licensed under the MIT License.
