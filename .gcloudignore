@@ -12,3 +12,6 @@ docs/
 evals/
 bench/
 infra/
+.env
+.env.*
+cloudrun-env.yaml
