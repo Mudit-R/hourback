@@ -132,7 +132,7 @@ export const Header: React.FC = () => {
     },
     {
       id: 'analytics',
-      label: '10-Hr BHAG Impact',
+      label: 'Analytics',
       icon: (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />

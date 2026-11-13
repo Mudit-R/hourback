@@ -29,7 +29,7 @@ function formatDuration(seconds: number | null): string {
 
 export const TimeSavedSummaryCard: React.FC<TimeSavedSummaryCardProps> = ({ classId, periodId }) => {
   const [showLogModal, setShowLogModal] = useState(false);
-  const [manualSeconds, setManualSeconds] = useState(420); // Default 7 min benchmark
+  const [manualSeconds, setManualSeconds] = useState<number | ''>('');
 
   const { data, loading, refetch } = useQuery<TimeSavedData>(GET_TIME_SAVED_SUMMARY, {
     variables: { classId, periodId },
@@ -54,6 +54,7 @@ export const TimeSavedSummaryCard: React.FC<TimeSavedSummaryCardProps> = ({ clas
 
   const handleLogManual = (e: React.FormEvent) => {
     e.preventDefault();
+    if (manualSeconds === '' || !Number.isFinite(manualSeconds)) return;
     void logManualTime({
       variables: {
         studentId: '00000000-0000-0000-0000-000000000000', // baseline log
@@ -179,7 +180,10 @@ export const TimeSavedSummaryCard: React.FC<TimeSavedSummaryCardProps> = ({ clas
                   min="30"
                   max="1800"
                   value={manualSeconds}
-                  onChange={(e) => setManualSeconds(parseInt(e.target.value, 10))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setManualSeconds(value === '' ? '' : parseInt(value, 10));
+                  }}
                   style={{
                     width: '100%',
                     padding: '8px 10px',
@@ -203,7 +207,7 @@ export const TimeSavedSummaryCard: React.FC<TimeSavedSummaryCardProps> = ({ clas
                 </button>
                 <button
                   type="submit"
-                  disabled={logging}
+                  disabled={logging || manualSeconds === '' || manualSeconds < 30 || manualSeconds > 1800}
                   style={{
                     padding: '6px 14px',
                     background: 'var(--color-primary)',
