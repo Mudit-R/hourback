@@ -46,17 +46,11 @@ export const TimeSavedSummaryCard: React.FC<TimeSavedSummaryCardProps> = ({ clas
 
   const summary = data?.timeSavedSummary;
 
-  const manualAvg = summary?.manualAvgSeconds ?? 450; // Fallback ~7.5m if no logs yet
-  const assistedAvg = summary?.assistedAvgSeconds ?? 68; // ~1.1m
-  const timeSavedSec = summary?.timeSavedSeconds ?? Math.max(0, manualAvg - assistedAvg);
-  const pct =
-    summary?.timeSavedPercent ??
-    (manualAvg > 0 ? Math.round(((manualAvg - assistedAvg) / manualAvg) * 100) : 0);
-
-  const totalHoursSaved =
-    summary?.commentCount && summary.commentCount > 0
-      ? ((timeSavedSec * summary.commentCount) / 3600).toFixed(1)
-      : (timeSavedSec / 60).toFixed(0);
+  const manualAvg = summary?.manualAvgSeconds ?? null;
+  const assistedAvg = summary?.assistedAvgSeconds ?? null;
+  const hasComparison = manualAvg != null && assistedAvg != null;
+  const timeSavedSec = hasComparison ? Math.max(0, manualAvg - assistedAvg) : null;
+  const pct = hasComparison && manualAvg > 0 ? Math.round(((manualAvg - assistedAvg) / manualAvg) * 100) : null;
 
   const handleLogManual = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +68,7 @@ export const TimeSavedSummaryCard: React.FC<TimeSavedSummaryCardProps> = ({ clas
       <div className={styles.header}>
         <div className={styles.titleArea}>
           <span className={styles.title}>Teacher Time-Saved Impact</span>
-          <span className={styles.metricBadge}>{Math.round(pct)}% Time Reduction</span>
+          <span className={styles.metricBadge}>{pct == null ? 'Awaiting paired logs' : `${pct}% from recorded averages`}</span>
         </div>
         <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
           {summary?.commentCount ?? 0} time entries logged
@@ -95,16 +89,16 @@ export const TimeSavedSummaryCard: React.FC<TimeSavedSummaryCardProps> = ({ clas
         </div>
 
         <div className={styles.statBox}>
-          <span className={styles.statLabel}>Saved / Comment</span>
+          <span className={styles.statLabel}>Difference between averages</span>
           <span className={`${styles.statValue} ${styles.statHighlight}`}>
             {loading ? '...' : formatDuration(timeSavedSec)}
           </span>
         </div>
 
         <div className={styles.statBox}>
-          <span className={styles.statLabel}>Est. Class Hours Saved</span>
+          <span className={styles.statLabel}>Time entries recorded</span>
           <span className={`${styles.statValue} ${styles.statHighlight}`}>
-            {loading ? '...' : `${totalHoursSaved}h`}
+            {loading ? '...' : summary?.commentCount ?? 0}
           </span>
         </div>
       </div>
@@ -124,7 +118,7 @@ export const TimeSavedSummaryCard: React.FC<TimeSavedSummaryCardProps> = ({ clas
             <div
               className={styles.barFillAssisted}
               style={{
-                width: manualAvg > 0 ? `${Math.min(100, (assistedAvg / manualAvg) * 100)}%` : '20%',
+                width: manualAvg != null && assistedAvg != null && manualAvg > 0 ? `${Math.min(100, (assistedAvg / manualAvg) * 100)}%` : '0%',
               }}
             />
           </div>
@@ -135,7 +129,7 @@ export const TimeSavedSummaryCard: React.FC<TimeSavedSummaryCardProps> = ({ clas
       </div>
 
       <div className={styles.footer}>
-        <span>Every approved comment records real review duration into PostgreSQL time_logs.</span>
+        <span>Comparisons use recorded manual and assisted durations; no unlogged estimate is included.</span>
         <button
           type="button"
           className={styles.logManualBtn}

@@ -22,11 +22,9 @@ interface StudentItem {
   id: string;
   evidence: {
     assessmentResults: AssessmentResult[];
+    observations: { id: string }[];
   };
-  reportComment: {
-    status: string;
-    groundednessScore: number | null;
-  } | null;
+  reportComment: { status: string } | null;
 }
 
 interface TimeSavedData {
@@ -40,154 +38,140 @@ interface TimeSavedData {
   };
 }
 
+function formatDuration(seconds: number | null | undefined): string {
+  if (seconds == null || !Number.isFinite(seconds)) return '—';
+  if (seconds < 60) return `${Math.round(seconds)} sec`;
+  const minutes = Math.floor(seconds / 60);
+  const remainder = Math.round(seconds % 60);
+  return remainder ? `${minutes}m ${remainder}s` : `${minutes}m`;
+}
+
 export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({ classId, periodId }) => {
-  const { data: gradebookData } = useQuery<{ classRoster: StudentItem[] }>(GET_CLASS_GRADEBOOK, {
+  const gradebookQuery = useQuery<{ classRoster: StudentItem[] }>(GET_CLASS_GRADEBOOK, {
     variables: { classId, periodId },
+    skip: !classId || !periodId,
+  });
+  const timeQuery = useQuery<TimeSavedData>(GET_TIME_SAVED_SUMMARY, {
+    variables: { classId, periodId },
+    skip: !classId || !periodId,
   });
 
-  const { data: timeData } = useQuery<TimeSavedData>(GET_TIME_SAVED_SUMMARY, {
-    variables: { classId, periodId },
-  });
+  const students = gradebookQuery.data?.classRoster ?? [];
+  const time = timeQuery.data?.timeSavedSummary;
+  const hasTimeComparison = time?.manualAvgSeconds != null && time.assistedAvgSeconds != null;
+  const savedPerComment = hasTimeComparison
+    ? Math.max(0, time.manualAvgSeconds! - time.assistedAvgSeconds!)
+    : null;
+  const reductionPercent = hasTimeComparison && time.manualAvgSeconds! > 0
+    ? Math.max(0, Math.round((savedPerComment! / time.manualAvgSeconds!) * 100))
+    : null;
 
-  const students = gradebookData?.classRoster ?? [];
-  const time = timeData?.timeSavedSummary;
-
-  const manualSeconds = time?.manualAvgSeconds ?? 400; // ~6.6 mins
-  const assistedSeconds = time?.assistedAvgSeconds ?? 35; // ~35s
-  const hoursSaved = (
-    ((manualSeconds - assistedSeconds) * students.length) /
-    3600
-  ).toFixed(1);
-
-  // Criteria score distribution
-  const criteriaMap: Record<string, { sum: number; count: number }> = {};
-  students.forEach((s) => {
-    s.evidence.assessmentResults.forEach((ar) => {
-      if (!criteriaMap[ar.criterion.name]) {
-        criteriaMap[ar.criterion.name] = { sum: 0, count: 0 };
-      }
-      criteriaMap[ar.criterion.name]!.sum += ar.level;
-      criteriaMap[ar.criterion.name]!.count += 1;
+  const criteriaMap: Record<string, { sum: number; max: number; count: number }> = {};
+  students.forEach((student) => {
+    student.evidence.assessmentResults.forEach((result) => {
+      const criterion = result.criterion;
+      const stat = criteriaMap[criterion.name] ??= { sum: 0, max: criterion.maxLevel, count: 0 };
+      stat.sum += result.level;
+      stat.max = Math.max(stat.max, criterion.maxLevel);
+      stat.count += 1;
     });
   });
 
-  const criteriaAverages = Object.entries(criteriaMap).map(([name, stat]) => ({
-    name,
-    avg: (stat.sum / stat.count).toFixed(1),
-    pct: Math.min(100, Math.round(((stat.sum / stat.count) / 8) * 100)),
-  }));
+  const criteriaAverages = Object.entries(criteriaMap).map(([name, stat]) => {
+    const average = stat.sum / stat.count;
+    return {
+      name,
+      average: average.toFixed(1),
+      max: stat.max,
+      percentage: stat.max > 0 ? Math.min(100, Math.round((average / stat.max) * 100)) : 0,
+    };
+  });
+
+  const comments = students.map((student) => student.reportComment).filter(Boolean);
+  const approvedComments = comments.filter((comment) => comment?.status.toLowerCase() === 'approved').length;
+  const observedStudents = students.filter((student) => student.evidence.observations.length > 0).length;
+  const assessedStudents = students.filter((student) => student.evidence.assessmentResults.length > 0).length;
 
   return (
     <div className={styles.container}>
       <div className={styles.topBar}>
         <div className={styles.titleArea}>
-          <h2>Educator Time Reclaimed & Impact Analytics</h2>
+          <h2>Class Analytics</h2>
           <p className={styles.subtitle}>
-            Tracking measurable educator time savings, groundedness fidelity, and deficit-language prevention.
+            A period-level view of rubric evidence, comments, and recorded time comparisons.
           </p>
         </div>
-
-        <div className={styles.bhagBadge}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: 6 }}>
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="6" />
-            <circle cx="12" cy="12" r="2" />
-          </svg>
-          Core Mission: Reclaim 10+ Hours / Week
-        </div>
+        <div className={styles.contextBadge}>Selected class and reporting period</div>
       </div>
 
       <div className={styles.metricsGrid}>
         <div className={`${styles.metricCard} ${styles.metricCardHighlight}`}>
-          <div className={styles.metricHeader}>
-            <span className={styles.metricLabel}>Total Educator Time Saved</span>
-          </div>
-          <span className={styles.metricValue}>{hoursSaved} hrs</span>
+          <div className={styles.metricHeader}><span className={styles.metricLabel}>Difference between time averages</span></div>
+          <span className={styles.metricValue}>{timeQuery.loading ? '…' : formatDuration(savedPerComment)}</span>
           <span className={styles.metricSubtext}>
-            ↑ 88% reduction in administrative overhead
+            {reductionPercent == null
+              ? 'Add manual and assisted time logs to calculate'
+              : `Manual ${formatDuration(time?.manualAvgSeconds)} → assisted ${formatDuration(time?.assistedAvgSeconds)} · ${reductionPercent}% difference`}
           </span>
         </div>
 
         <div className={styles.metricCard}>
-          <div className={styles.metricHeader}>
-            <span className={styles.metricLabel}>Time Per Student</span>
-          </div>
-          <span className={styles.metricValue}>{Math.round(assistedSeconds)}s</span>
-          <span style={{ fontSize: 12, color: '#64748b' }}>
-            vs {Math.round(manualSeconds / 60)}m 40s manual typing baseline
-          </span>
+          <div className={styles.metricHeader}><span className={styles.metricLabel}>Recorded time entries</span></div>
+          <span className={styles.metricValue}>{timeQuery.loading ? '…' : timeQuery.error ? '—' : time?.commentCount ?? 0}</span>
+          <span className={styles.metricSubtextNeutral}>{timeQuery.error ? 'Could not load time logs' : 'Manual and assisted entries for this class'}</span>
         </div>
 
         <div className={styles.metricCard}>
-          <div className={styles.metricHeader}>
-            <span className={styles.metricLabel}>Evidence Grounding Rate</span>
-          </div>
-          <span className={styles.metricValue}>100%</span>
-          <span style={{ fontSize: 12, color: '#059669', fontWeight: 600 }}>
-            Every sentence cited to rubric or note
-          </span>
+          <div className={styles.metricHeader}><span className={styles.metricLabel}>Comments approved</span></div>
+          <span className={styles.metricValue}>{gradebookQuery.loading ? '…' : gradebookQuery.error ? '—' : approvedComments}</span>
+          <span className={styles.metricSubtextNeutral}>From {comments.length} students with a comment</span>
         </div>
 
         <div className={styles.metricCard}>
-          <div className={styles.metricHeader}>
-            <span className={styles.metricLabel}>Deficit Words Prevented</span>
-          </div>
-          <span className={styles.metricValue}>24</span>
-          <span style={{ fontSize: 12, color: '#2563eb', fontWeight: 600 }}>
-            Scrubbed & converted to growth mindset
-          </span>
+          <div className={styles.metricHeader}><span className={styles.metricLabel}>Students with rubric evidence</span></div>
+          <span className={styles.metricValue}>{gradebookQuery.loading ? '…' : gradebookQuery.error ? '—' : assessedStudents}</span>
+          <span className={styles.metricSubtextNeutral}>Observation notes on {observedStudents} students</span>
         </div>
       </div>
 
       <div className={styles.chartsRow}>
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Class Rubric Strand Performance (Levels 1–8)</h3>
-          <div className={styles.barChart}>
-            {criteriaAverages.map((c) => (
-              <div key={c.name} className={styles.barRow}>
-                <span className={styles.barLabel}>{c.name}</span>
-                <div className={styles.barTrack}>
-                  <div className={styles.barFill} style={{ width: `${c.pct}%` }} />
+          <h3 className={styles.chartTitle}>Rubric strand averages</h3>
+          {gradebookQuery.loading ? <p className={styles.emptyState}>Loading rubric results…</p> : null}
+          {gradebookQuery.error ? <p className={styles.errorState}>Could not load rubric results. Try changing the class or period.</p> : null}
+          {!gradebookQuery.loading && !gradebookQuery.error && criteriaAverages.length === 0 ? (
+            <p className={styles.emptyState}>No rubric results recorded for this class and period yet.</p>
+          ) : null}
+          {!gradebookQuery.loading && !gradebookQuery.error && criteriaAverages.length > 0 ? (
+            <div className={styles.barChart}>
+              {criteriaAverages.map((criterion) => (
+                <div key={criterion.name} className={styles.barRow}>
+                  <span className={styles.barLabel} title={criterion.name}>{criterion.name}</span>
+                  <div className={styles.barTrack} role="img" aria-label={`${criterion.name}: ${criterion.average} of ${criterion.max}`}>
+                    <div className={styles.barFill} style={{ width: `${criterion.percentage}%` }} />
+                  </div>
+                  <span className={styles.barValue}>{criterion.average}/{criterion.max}</span>
                 </div>
-                <span className={styles.barValue}>{c.avg}/8</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>FERPA & Language Safety Shield Audit</h3>
-          <table className={styles.auditTable}>
-            <thead>
-              <tr>
-                <th>Safety Filter</th>
-                <th>Enforcement Mechanism</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{ fontWeight: 600 }}>Zero-PII Tokenizer</td>
-                <td>Name scrubbing before LLM input</td>
-                <td style={{ color: '#059669', fontWeight: 700 }}>Active (100%)</td>
-              </tr>
-              <tr>
-                <td style={{ fontWeight: 600 }}>Deficit Filter</td>
-                <td>Regex bans on 'lazy', 'struggling', 'behind'</td>
-                <td style={{ color: '#059669', fontWeight: 700 }}>Active (0 leaks)</td>
-              </tr>
-              <tr>
-                <td style={{ fontWeight: 600 }}>Peer Comparative Guard</td>
-                <td>Prevents comparing students against classmates</td>
-                <td style={{ color: '#059669', fontWeight: 700 }}>Enforced</td>
-              </tr>
-              <tr>
-                <td style={{ fontWeight: 600 }}>DataLoader N+1 Batcher</td>
-                <td>96.7% query roundtrip reduction</td>
-                <td style={{ color: '#2563eb', fontWeight: 700 }}>4ms Latency</td>
-              </tr>
-            </tbody>
-          </table>
+          <h3 className={styles.chartTitle}>Class workflow snapshot</h3>
+          {gradebookQuery.loading ? <p className={styles.emptyState}>Loading class activity…</p> : null}
+          {gradebookQuery.error ? <p className={styles.errorState}>Could not load class activity. Try again in a moment.</p> : null}
+          {!gradebookQuery.loading && !gradebookQuery.error ? (
+            <div className={styles.workflowList}>
+              <div className={styles.workflowRow}><span>Students in class</span><strong>{students.length}</strong></div>
+              <div className={styles.workflowRow}><span>Students with assessment results</span><strong>{assessedStudents}</strong></div>
+              <div className={styles.workflowRow}><span>Students with observation notes</span><strong>{observedStudents}</strong></div>
+              <div className={styles.workflowRow}><span>Approved report comments</span><strong>{approvedComments}</strong></div>
+            </div>
+          ) : null}
+          <p className={styles.disclosure}>
+            Time comparisons appear only when both manual and assisted durations have been recorded. No projected class-wide hours are shown.
+          </p>
         </div>
       </div>
     </div>

@@ -44,10 +44,14 @@ export const Header: React.FC = () => {
   const { data } = useQuery<TeacherClassesData>(GET_TEACHER_CLASSES, {
     onCompleted: (d) => {
       if (!selectedClassId && d.classes.length > 0) {
-        const firstClass = d.classes[0]!;
-        const firstPeriod = firstClass.reportPeriods[0];
+        const preferredDemoClass = d.classes.find((classItem) =>
+          classItem.name.toLowerCase().includes('grade 5a') &&
+          classItem.subject.toLowerCase().includes('mathematics'),
+        );
+        const initialClass = preferredDemoClass ?? d.classes[0]!;
+        const firstPeriod = initialClass.reportPeriods[0];
         if (firstPeriod) {
-          dispatch(selectClass({ classId: firstClass.id, periodId: firstPeriod.id }));
+          dispatch(selectClass({ classId: initialClass.id, periodId: firstPeriod.id }));
         }
       }
     },

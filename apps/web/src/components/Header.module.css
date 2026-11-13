@@ -362,3 +362,64 @@
 .dropdownLogout:hover {
   background-color: #fef2f2 !important;
 }
+
+@media (max-width: 1500px) {
+  .header {
+    height: auto;
+    min-height: 52px;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .leftArea {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    min-width: 0;
+  }
+
+  .classSelectorWrapper {
+    flex-wrap: wrap;
+  }
+
+  .navTabs {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .navTab {
+    flex-shrink: 0;
+  }
+
+  .rightArea {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 700px) {
+  .header {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .leftArea {
+    align-items: flex-start;
+  }
+
+  .classSelectorWrapper {
+    width: 100%;
+  }
+
+  .select {
+    max-width: min(55vw, 260px);
+  }
+
+  .rightArea {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
