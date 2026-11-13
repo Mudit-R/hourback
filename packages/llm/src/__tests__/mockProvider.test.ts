@@ -27,6 +27,19 @@ const samplePack: EvidencePack = {
 };
 
 describe('MockProvider', () => {
+  it('limits short fallback reports to three sentences and retains an observation citation', async () => {
+    const [assessment, observation] = samplePack.items;
+    const items = [1, 2, 3, 4].map((n) => ({ ...assessment, id: `assessment-${n}` }));
+    const response = await new MockProvider('valid').generate({
+      ...samplePack,
+      length: 'short',
+      items: [...items, observation],
+    });
+
+    expect(response.sentences).toHaveLength(3);
+    expect(response.sentences.flatMap((sentence) => sentence.evidence_ids)).toContain(observation.id);
+  });
+
   it('generates valid grounded response in default mode', async () => {
     const provider = new MockProvider('valid');
     const response = await provider.generate(samplePack);

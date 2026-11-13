@@ -91,6 +91,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build API workspace dependencies
+        run: npm run build:dependencies
+
       - name: Run migrations
         run: npm run db:migrate --workspace=apps/api
 

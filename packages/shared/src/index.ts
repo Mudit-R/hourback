@@ -39,8 +39,8 @@ export const LLMResponseSchema = z.object({
 export type LLMSentence = z.infer<typeof LLMSentenceSchema>;
 export type LLMResponse = z.infer<typeof LLMResponseSchema>;
 
-// ── SQS Message ───────────────────────────────────────────────────────────────
-export const SQSMessageBodySchema = z.object({
+// ── Report generation message ────────────────────────────────────────────────
+export const GenerationMessageSchema = z.object({
   jobId: z.string().uuid(),
   studentId: z.string().uuid(),
   periodId: z.string().uuid(),
@@ -49,7 +49,9 @@ export const SQSMessageBodySchema = z.object({
   attempt: z.number().int().min(1).default(1),
 });
 
-export type SQSMessageBody = z.infer<typeof SQSMessageBodySchema>;
+export type GenerationMessage = z.infer<typeof GenerationMessageSchema>;
+export const SQSMessageBodySchema = GenerationMessageSchema;
+export type SQSMessageBody = GenerationMessage;
 
 // ── DB Row Types (for cross-package use) ──────────────────────────────────────
 export interface Teacher {

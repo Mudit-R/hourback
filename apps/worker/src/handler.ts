@@ -9,6 +9,8 @@ import type { CommentTone, CommentLength } from '@hourback/shared';
 import { createProvider } from '@hourback/llm';
 import { buildEvidencePack } from './evidencePack';
 import { tokenizeName, rehydrateName, STUDENT_TOKEN } from './tokenizer';
+import { outcomeOfExistingDraft, settleGeneration } from './jobProgress';
+import type { GenerationTarget } from './jobProgress';
 import {
   validateLLMResponse,
   buildValidatorFeedback,
@@ -73,27 +75,15 @@ async function processRecord(record: SQSRecord): Promise<void> {
   await processMessageData(parsed.data);
 }
 
-export async function processMessageData(data: {
-  jobId: string;
-  studentId: string;
-  periodId: string;
+export async function processMessageData(data: GenerationTarget & {
   tone: CommentTone;
   length: CommentLength;
   attempt?: number;
 }): Promise<void> {
   const { jobId, studentId, periodId, tone, length } = data;
 
-  // ── 2. Idempotency check ──────────────────────────────────────────────────
-  const existing = await db('report_comments')
-    .where({ student_id: studentId, period_id: periodId })
-    .select('id')
-    .first();
-
-  if (existing) {
-    // Message already processed (redelivery or existing comments in class) — ack silently and mark completed in job
-    console.warn(`[worker] Idempotency: comment already exists for student=${studentId} period=${periodId}, counting toward job completion`);
-    await db('generation_jobs').where({ id: jobId }).increment('done', 1);
-    await updateJobStatusIfComplete(jobId);
+  // Reuse existing drafts for a new job and skip redeliveries before inference.
+  if (await settleGeneration(db, data, (trx) => outcomeOfExistingDraft(trx, studentId, periodId))) {
     return;
   }
 
@@ -167,9 +157,9 @@ export async function processMessageData(data: {
   // ── 8. Persist comment + citations ────────────────────────────────────────
   const commentId = uuidv4();
 
-  try {
-    await db.transaction(async (trx) => {
-      await trx('report_comments').insert({
+  const settled = await settleGeneration(db, data, async (trx) => {
+    const inserted = await trx('report_comments')
+      .insert({
         id: commentId,
         student_id: studentId,
         period_id: periodId,
@@ -183,62 +173,35 @@ export async function processMessageData(data: {
         generation_ms: generationMs,
         tone,
         length,
-      });
+      })
+      .onConflict(['student_id', 'period_id'])
+      .ignore()
+      .returning('id');
 
-      if (sentences.length > 0) {
-        const citations = sentences.flatMap((s, sentenceIdx) =>
-          s.evidence_ids.map((sourceId) => ({
-            id: uuidv4(),
-            comment_id: commentId,
-            sentence_idx: sentenceIdx,
-            source_type: pack.items.find((i) => i.id === sourceId)?.type ?? 'observation',
-            source_id: sourceId,
-          })),
-        );
+    if (inserted.length === 0) return outcomeOfExistingDraft(trx, studentId, periodId);
 
-        if (citations.length > 0) {
-          await trx('comment_citations').insert(citations);
-        }
-      }
-    });
-  } catch (err: unknown) {
-    // Unique constraint violation = race condition (two workers processed same message)
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes('duplicate') || msg.includes('unique')) {
-      console.warn(`[worker] Race condition resolved: comment already inserted for student=${studentId}`);
-      return;
+    const citations = sentences.flatMap((s, sentenceIdx) =>
+      s.evidence_ids.map((sourceId) => ({
+        id: uuidv4(),
+        comment_id: commentId,
+        sentence_idx: sentenceIdx,
+        source_type: pack.items.find((i) => i.id === sourceId)?.type ?? 'observation',
+        source_id: sourceId,
+      })),
+    );
+
+    if (citations.length > 0) {
+      await trx('comment_citations').insert(citations);
     }
-    throw err;
+    return validation.valid ? 'done' : 'failed';
+  });
+  if (!settled) {
+    throw new Error('A competing draft was removed during generation. Retry the message.');
   }
-
-  // ── 9. Update job progress ────────────────────────────────────────────────
-  if (validation.valid) {
-    await db('generation_jobs').where({ id: jobId }).increment('done', 1);
-  } else {
-    await db('generation_jobs').where({ id: jobId }).increment('failed', 1);
-  }
-
-  // Mark job completed if all students done
-  await updateJobStatusIfComplete(jobId);
 }
 
-async function updateJobStatusIfComplete(jobId: string): Promise<void> {
-  const job = await db('generation_jobs')
-    .where({ id: jobId })
-    .select('total', 'done', 'failed')
-    .first();
-
-  if (!job) return;
-
-  const processed = (job.done as number) + (job.failed as number);
-  if (processed >= (job.total as number)) {
-    const newStatus =
-      (job.failed as number) === 0
-        ? 'completed'
-        : (job.done as number) === 0
-          ? 'failed'
-          : 'partial';
-
-    await db('generation_jobs').where({ id: jobId }).update({ status: newStatus });
-  }
+export async function recordGenerationFailure(target: GenerationTarget): Promise<void> {
+  await settleGeneration(db, target, async (trx) => {
+    return (await outcomeOfExistingDraft(trx, target.studentId, target.periodId)) ?? 'failed';
+  });
 }

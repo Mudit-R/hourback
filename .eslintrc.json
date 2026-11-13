@@ -4,7 +4,12 @@
   "parserOptions": {
     "ecmaVersion": 2022,
     "sourceType": "module",
-    "ecmaFeatures": { "jsx": true }
+    "ecmaFeatures": { "jsx": true },
+    "project": [
+      "./tsconfig.json",
+      "./apps/*/tsconfig.json",
+      "./packages/*/tsconfig.json"
+    ]
   },
   "plugins": ["@typescript-eslint", "react", "react-hooks", "jsx-a11y"],
   "extends": [

@@ -1,0 +1,174 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: HourBack SQS queue, dead-letter queue, and Lambda generation worker.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: hourback
+    AllowedPattern: '[a-z0-9][a-z0-9-]{0,19}'
+    Description: Short lowercase prefix used for queue, function, and log names.
+  DatabaseUrlSecretArn:
+    Type: String
+    Description: ARN of a Secrets Manager secret with a DATABASE_URL key.
+  LlmProvider:
+    Type: String
+    Default: mock
+    AllowedValues:
+      - mock
+      - gemini
+    Description: Use mock for an isolated deployment, or gemini when a key is configured.
+  GeminiApiKeySecretArn:
+    Type: String
+    Default: ''
+    Description: ARN of a Secrets Manager secret with a GEMINI_API_KEY key.
+  WorkerConcurrency:
+    Type: Number
+    Default: 5
+    MinValue: 1
+    MaxValue: 100
+    Description: Maximum simultaneous SQS batches. Keep this within the database pool capacity.
+
+Conditions:
+  UseGemini: !Equals [!Ref LlmProvider, gemini]
+
+Resources:
+  GenerationDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${EnvironmentName}-generation-dead'
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+      RedriveAllowPolicy:
+        redrivePermission: byQueue
+        sourceQueueArns:
+          - !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${EnvironmentName}-generation'
+
+  GenerationQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${EnvironmentName}-generation'
+      MessageRetentionPeriod: 345600
+      ReceiveMessageWaitTimeSeconds: 20
+      VisibilityTimeout: 420
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt GenerationDeadLetterQueue.Arn
+        maxReceiveCount: 5
+
+  WorkerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${EnvironmentName}-generation-worker'
+      RetentionInDays: 14
+
+  WorkerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: PollGenerationQueue
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: ReadAndAcknowledgeGenerationMessages
+                Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:ChangeMessageVisibility
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt GenerationQueue.Arn
+              - Sid: WriteWorkerLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub '${WorkerLogGroup.Arn}:*'
+
+  GenerationProducerPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows an API identity to publish generation messages to the HourBack queue.
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublishGenerationMessages
+            Effect: Allow
+            Action:
+              - sqs:SendMessage
+              - sqs:SendMessageBatch
+            Resource: !GetAtt GenerationQueue.Arn
+
+  GenerationWorker:
+    Type: AWS::Serverless::Function
+    DependsOn:
+      - WorkerLogGroup
+    Metadata:
+      DockerContext: ..
+      Dockerfile: infra/aws-worker.Dockerfile
+      DockerTag: hourback-generation-worker
+    Properties:
+      PackageType: Image
+      FunctionName: !Sub '${EnvironmentName}-generation-worker'
+      Role: !GetAtt WorkerExecutionRole.Arn
+      Timeout: 60
+      MemorySize: 1024
+      ReservedConcurrentExecutions: !Ref WorkerConcurrency
+      Environment:
+        Variables:
+          DATABASE_URL: !Sub '{{resolve:secretsmanager:${DatabaseUrlSecretArn}:SecretString:DATABASE_URL}}'
+          LLM_PROVIDER: !Ref LlmProvider
+          GEMINI_API_KEY: !If
+            - UseGemini
+            - !Sub '{{resolve:secretsmanager:${GeminiApiKeySecretArn}:SecretString:GEMINI_API_KEY}}'
+            - !Ref AWS::NoValue
+          NODE_ENV: production
+          USE_LOCAL_QUEUE: 'false'
+      Events:
+        GenerationQueue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt GenerationQueue.Arn
+            BatchSize: 5
+            MaximumBatchingWindowInSeconds: 1
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+            ScalingConfig:
+              MaximumConcurrency: !Ref WorkerConcurrency
+
+  DeadLetterQueueAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: At least one generation message is waiting for manual review in the DLQ.
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt GenerationDeadLetterQueue.QueueName
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+Outputs:
+  GenerationQueueUrl:
+    Description: Set SQS_QUEUE_URL on the API publisher.
+    Value: !Ref GenerationQueue
+  GenerationQueueArn:
+    Value: !GetAtt GenerationQueue.Arn
+  GenerationDeadLetterQueueUrl:
+    Value: !Ref GenerationDeadLetterQueue
+  GenerationWorkerFunctionArn:
+    Value: !GetAtt GenerationWorker.Arn
+  GenerationProducerPolicyArn:
+    Description: Attach this policy to the API's AWS identity. It only grants send actions to the generation queue.
+    Value: !Ref GenerationProducerPolicy

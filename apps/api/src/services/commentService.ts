@@ -8,19 +8,28 @@ import {
 import type {
   CommentTone,
   CommentLength,
+  GenerationMessage,
   GenerationJob,
   ReportComment,
 } from '@hourback/shared';
 import { SQSMessageBodySchema } from '@hourback/shared';
-import { processMessageData } from '@hourback/worker';
+import { processMessageData, recordGenerationFailure } from '@hourback/worker';
+import { generationPubSubTopic, publishGenerationMessage } from './generationPubSub';
+import type { Topic } from '@google-cloud/pubsub';
+
+const awsAccessKeyId = process.env['AWS_ACCESS_KEY_ID'];
+const awsSecretAccessKey = process.env['AWS_SECRET_ACCESS_KEY'];
+const sqsCredentials =
+  awsAccessKeyId && awsSecretAccessKey
+    ? { accessKeyId: awsAccessKeyId, secretAccessKey: awsSecretAccessKey }
+    : process.env['AWS_ENDPOINT_URL']
+      ? { accessKeyId: 'test', secretAccessKey: 'test' }
+      : undefined;
 
 const sqs = new SQSClient({
   region: process.env['AWS_REGION'] ?? 'us-east-1',
   endpoint: process.env['AWS_ENDPOINT_URL'],
-  credentials: {
-    accessKeyId: process.env['AWS_ACCESS_KEY_ID'] ?? 'test',
-    secretAccessKey: process.env['AWS_SECRET_ACCESS_KEY'] ?? 'test',
-  },
+  ...(sqsCredentials ? { credentials: sqsCredentials } : {}),
 });
 
 const QUEUE_URL = process.env['SQS_QUEUE_URL'] ?? '';
@@ -130,6 +139,7 @@ export async function generateComments(
   tone: CommentTone,
   length: CommentLength,
 ): Promise<GenerationJob> {
+  const pubSub = generationPubSubTopic();
   const students = await db('students').where({ class_id: classId }).select('id');
 
   if (students.length === 0) {
@@ -153,8 +163,7 @@ export async function generateComments(
     })
     .returning('*');
 
-  // Dispatch generation: try SQS first, fallback to in-process async worker
-  await dispatchBatch(jobId, students as { id: string }[], periodId, tone, length);
+  await dispatchBatch(jobId, students as { id: string }[], periodId, tone, length, pubSub);
 
   return job as GenerationJob;
 }
@@ -165,8 +174,17 @@ async function dispatchBatch(
   periodId: string,
   tone: CommentTone,
   length: CommentLength,
+  pubSub: Topic | undefined,
 ): Promise<void> {
+  if (pubSub) {
+    await dispatchPubSub(pubSub, students.map(({ id }) => ({
+      jobId, studentId: id, periodId, tone, length, attempt: 1,
+    })));
+    return;
+  }
+
   const useSQS = Boolean(QUEUE_URL && process.env['USE_LOCAL_QUEUE'] !== 'true');
+  let fallbackFrom = 0;
 
   if (useSQS) {
     try {
@@ -188,12 +206,16 @@ async function dispatchBatch(
           };
         });
 
-        await sqs.send(
+        const result = await sqs.send(
           new SendMessageBatchCommand({
             QueueUrl: QUEUE_URL,
             Entries: entries,
           }),
         );
+        if (result.Failed?.length) {
+          throw new Error(`SQS rejected ${result.Failed.length} generation messages`);
+        }
+        fallbackFrom = i + batch.length;
       }
       return;
     } catch (err) {
@@ -202,52 +224,50 @@ async function dispatchBatch(
   }
 
   // Local async worker fallback (zero AWS dependency) - process in parallel batches of 5
-  setImmediate(async () => {
-    const BATCH_SIZE = 5;
-    for (let i = 0; i < students.length; i += BATCH_SIZE) {
-      const slice = students.slice(i, i + BATCH_SIZE);
-      await Promise.all(
-        slice.map(async (s) => {
-          try {
-            await processMessageData({
-              jobId,
-              studentId: s.id,
-              periodId,
-              tone,
-              length,
-              attempt: 1,
-            });
-          } catch (err) {
-            console.error(`[commentService] Local processing error for student ${s.id}:`, err);
+  setImmediate(() => {
+    void (async () => {
+      const BATCH_SIZE = 5;
+      for (let i = fallbackFrom; i < students.length; i += BATCH_SIZE) {
+        const slice = students.slice(i, i + BATCH_SIZE);
+        await Promise.all(
+          slice.map(async (s) => {
             try {
-              await db('generation_jobs').where({ id: jobId }).increment('failed', 1);
-            } catch (e) {
-              console.error('[commentService] Error updating job failure state:', e);
+              await processMessageData({
+                jobId,
+                studentId: s.id,
+                periodId,
+                tone,
+                length,
+                attempt: 1,
+              });
+            } catch (err) {
+              console.error(`[commentService] Local processing error for student ${s.id}:`, err);
+              try {
+                await recordGenerationFailure({ jobId, studentId: s.id, periodId });
+              } catch (e) {
+                console.error('[commentService] Error updating job failure state:', e);
+              }
             }
-          }
-        }),
-      );
-    }
-
-    try {
-      const job = await db('generation_jobs')
-        .where({ id: jobId })
-        .select('total', 'done', 'failed')
-        .first();
-      if (job) {
-        const done = Number(job.done) || 0;
-        const failed = Number(job.failed) || 0;
-        const total = Number(job.total) || 0;
-        if (done + failed >= total) {
-          await db('generation_jobs')
-            .where({ id: jobId })
-            .update({ status: failed === 0 ? 'completed' : done > 0 ? 'partial' : 'failed' });
-        }
+          }),
+        );
       }
-    } catch (e) {
-      console.error('[commentService] Error finalizing job status:', e);
-    }
+    })();
   });
+}
+
+async function dispatchPubSub(topic: Topic, messages: GenerationMessage[]): Promise<void> {
+  const batchSize = 25;
+  for (let offset = 0; offset < messages.length; offset += batchSize) {
+    const batch = messages.slice(offset, offset + batchSize);
+    await Promise.all(batch.map(async (message) => {
+      try {
+        await publishGenerationMessage(topic, message);
+      } catch {
+        console.error('[commentService] Pub/Sub publish failed for generation job', message.jobId);
+        await recordGenerationFailure(message);
+      }
+    }));
+  }
 }
 
 // ── updateComment ─────────────────────────────────────────────────────────────
@@ -308,6 +328,7 @@ export async function regenerateComment(
   tone?: CommentTone,
   length?: CommentLength,
 ): Promise<GenerationJob> {
+  const pubSub = generationPubSubTopic();
   const comment = await db('report_comments')
     .join('students', 'report_comments.student_id', 'students.id')
     .join('classes', 'students.class_id', 'classes.id')
@@ -356,6 +377,11 @@ export async function regenerateComment(
     attempt: 1,
   });
 
+  if (pubSub) {
+    await dispatchPubSub(pubSub, [body]);
+    return job as GenerationJob;
+  }
+
   const useSQS = Boolean(QUEUE_URL && process.env['USE_LOCAL_QUEUE'] !== 'true');
   if (useSQS) {
     try {
@@ -368,12 +394,19 @@ export async function regenerateComment(
     }
   }
 
-  setImmediate(async () => {
-    try {
-      await processMessageData(body);
-    } catch (err) {
-      console.error(`[commentService] Local processing error for student ${comment.student_id}:`, err);
-    }
+  setImmediate(() => {
+    void (async () => {
+      try {
+        await processMessageData(body);
+      } catch (err) {
+        console.error(`[commentService] Local processing error for student ${comment.student_id}:`, err);
+        try {
+          await recordGenerationFailure(body);
+        } catch (progressError) {
+          console.error('[commentService] Error updating job failure state:', progressError);
+        }
+      }
+    })();
   });
 
   return job as GenerationJob;

@@ -200,7 +200,7 @@ npm install
 ### 3. Environment Configuration
 ```bash
 cp .env.example .env
-# Configure DATABASE_URL and GEMINI_API_KEY (or use MOCK_LLM=true)
+# Configure DATABASE_URL and GEMINI_API_KEY, or set LLM_PROVIDER=mock.
 ```
 
 ### 4. Database Setup & Seeding
@@ -217,6 +217,28 @@ npm run dev
 
 - Web Application: `http://localhost:3000`
 - GraphQL API Explorer: `http://localhost:4000/graphql`
+
+### Report generation without AWS
+
+Set `USE_LOCAL_QUEUE=true` for the local demo or the existing Cloud Run image.
+The API calls the same worker in its own process with PostgreSQL and the selected
+model provider. It needs no SQS credentials. This dispatcher uses process memory,
+so pending work can be interrupted by a process restart. Cloud Run's default
+request-based CPU allocation can also delay work after a response has returned.
+See [Cloud Run billing and CPU allocation](https://cloud.google.com/run/docs/configuring/billing-settings).
+For a durable Google Cloud queue, see the [Pub/Sub and Cloud Run setup](docs/PUBSUB_CLOUD_RUN.md).
+
+Apply the database migration before starting the updated API and worker. The worker
+records each student outcome once per generation job and commits the draft,
+citations, and counters together. Concurrent duplicate messages can still call
+the model if they arrive before the first outcome commits.
+
+To verify the delivery behavior, build the workspaces, create an empty local
+PostgreSQL database named `hourback_delivery_test`, and set
+`HOURBACK_GENERATION_TEST_DATABASE_URL` to its loopback connection URL. Run
+`node scripts/verify-generation-delivery.cjs`. It applies both migrations
+and checks concurrent delivery, draft deletion and replay, duplicate failures,
+competing jobs, and the migration backfill with a mock model.
 
 ---
 

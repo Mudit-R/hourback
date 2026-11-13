@@ -1,0 +1,58 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: hourback-pubsub-smoke
+  annotations:
+    run.googleapis.com/invoker-iam-disabled: "false"
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "1"
+        run.googleapis.com/container-dependencies: '{"worker":["postgres"]}'
+    spec:
+      serviceAccountName: SMOKE_RUNTIME_SERVICE_ACCOUNT
+      containerConcurrency: 8
+      timeoutSeconds: 60
+      containers:
+        - name: worker
+          image: SMOKE_IMAGE
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PUBSUB_GENERATION_TOPIC
+              value: projects/GOOGLE_CLOUD_PROJECT/topics/hourback-pubsub-smoke-jobs
+            - name: PUBSUB_PUSH_SUBSCRIPTION
+              value: projects/GOOGLE_CLOUD_PROJECT/subscriptions/hourback-pubsub-smoke-push
+            - name: HOURBACK_PUBSUB_TEST_DATABASE_URL
+              value: postgresql://hourback:ephemeral-fixtures-only@127.0.0.1:5432/hourback_pubsub_smoke
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 24
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+        - name: postgres
+          image: docker.io/library/postgres:16-alpine
+          env:
+            - name: POSTGRES_USER
+              value: hourback
+            - name: POSTGRES_PASSWORD
+              value: ephemeral-fixtures-only
+            - name: POSTGRES_DB
+              value: hourback_pubsub_smoke
+          startupProbe:
+            tcpSocket:
+              port: 5432
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 24
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi

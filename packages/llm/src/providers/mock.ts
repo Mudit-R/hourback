@@ -37,9 +37,14 @@ export class MockProvider implements LLMProvider {
     const items = pack.items;
     const sentences: LLMResponse['sentences'] = [];
 
-    // Build one sentence per evidence item (up to 4 items)
-    for (let i = 0; i < Math.min(items.length, 4); i++) {
-      const item = items[i]!;
+    // Short reports must stay within the worker's three-sentence limit.
+    const maxSentences = pack.length === 'short' ? 3 : 4;
+    const selected = items.slice(0, maxSentences);
+    const observation = items.find((item) => item.type === 'observation');
+    if (observation && !selected.includes(observation)) {
+      selected[selected.length - 1] = observation;
+    }
+    for (const item of selected) {
       sentences.push({
         text: `${pack.studentToken} has demonstrated strong competency in ${item.criterionName ?? item.tag ?? 'learning areas'} this reporting period.`,
         evidence_ids: [item.id],
