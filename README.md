@@ -28,7 +28,7 @@ Teachers today work **50+ hours every week**, with a crushing portion lost to fr
 HourBack addresses this through a three-pronged architecture:
 1. **Unified Teaching Lifecycle**: Planning, criteria rubrics, anecdotal portfolios, official report cards, family communication, and class management live in a single coherent workspace.
 2. **Context-Aware AI Assistant**: An AI Teaching Partner grounded in real classroom observations and rubric scores that automates administrative overhead while elevating pedagogical practice.
-3. **Institutional Trust & Privacy**: Zero-PII anonymization tokenizers, strict deficit-language blocklists, and deterministic citation verification ensure 100% compliance with FERPA / COPPA standards.
+3. **Privacy safeguards**: Student names and common contact patterns are redacted before model calls, and generated claims are checked against cited evidence. Redaction is not comprehensive PII detection, and the app does not claim FERPA/COPPA compliance.
 
 ---
 
@@ -202,6 +202,7 @@ npm install
 cp .env.example .env
 # Configure DATABASE_URL and GROQ_API_KEY (LLM_PROVIDER=groq), or set
 # LLM_PROVIDER=mock for deterministic local development without provider calls.
+# For a separate web origin, set CORS_ORIGINS to its comma-separated allowed origin(s).
 ```
 
 ### 4. Database Setup & Seeding
@@ -233,6 +234,11 @@ Apply the database migration before starting the updated API and worker. The wor
 records each student outcome once per generation job and commits the draft,
 citations, and counters together. Concurrent duplicate messages can still call
 the model if they arrive before the first outcome commits.
+
+For Cloud Run, bind `DATABASE_URL` and `GROQ_API_KEY` from Secret Manager, set
+`LLM_PROVIDER=groq`, and apply migrations before serving traffic. Same-origin
+web/API deployments need no CORS override; a separate web host must be listed in
+`CORS_ORIGINS`.
 
 To verify the delivery behavior, build the workspaces, create an empty local
 PostgreSQL database named `hourback_delivery_test`, and set

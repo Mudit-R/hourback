@@ -50,6 +50,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build shared packages
+        run: npm run build:dependencies
+
       - name: Run unit tests (packages/llm, packages/shared, worker)
         run: |
           npm run test --workspace=packages/llm
