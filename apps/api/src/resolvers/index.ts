@@ -11,8 +11,19 @@ import {
   UpdateAssessmentResultInput,
 } from '../validation/schemas';
 import { toGraphQLError } from '../validation/errors';
+import { LoginInput, SignupInput } from '../validation/schemas';
 
 import db from '../db/client';
+import {
+  assertAssessmentResultOwned,
+  assertClassOwned,
+  assertClassPeriodOwned,
+  assertCommentOwned,
+  assertJobOwned,
+  assertStudentOwned,
+  assertStudentPeriodOwned,
+} from '../auth/ownership';
+import { clearSessionCookie, setSessionCookie } from '../auth/session';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 function requireTeacher(ctx: GraphQLContext): string {
@@ -129,7 +140,8 @@ export const resolvers = {
       args: { classId: string; periodId: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertClassPeriodOwned(teacherId, args.classId, args.periodId);
       const students = await svc.getClassRoster(args.classId, args.periodId);
       return students.map(mapStudent);
     },
@@ -139,7 +151,8 @@ export const resolvers = {
       args: { studentId: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertStudentOwned(teacherId, args.studentId);
       const ev = await svc.getStudentEvidence(args.studentId);
       return {
         assessmentResults: ev.assessmentResults.map(mapAssessmentResult),
@@ -152,7 +165,8 @@ export const resolvers = {
       args: { studentId: string; periodId: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertStudentPeriodOwned(teacherId, args.studentId, args.periodId);
       const comment = await svc.getReportComment(args.studentId, args.periodId);
       if (!comment) return null;
       return mapComment(comment as Record<string, unknown>);
@@ -163,7 +177,8 @@ export const resolvers = {
       args: { classId: string; periodId: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertClassPeriodOwned(teacherId, args.classId, args.periodId);
       return svc.getTimeSavedSummary(args.classId, args.periodId);
     },
 
@@ -172,19 +187,19 @@ export const resolvers = {
       args: { jobId: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertJobOwned(teacherId, args.jobId);
       return svc.getGenerationJob(args.jobId);
-    },
-
-    teachers: async () => {
-      return svc.getTeachers();
     },
 
     activityFeed: async (
       _parent: unknown,
       args: { classId?: string },
+      ctx: GraphQLContext,
     ) => {
-      return svc.getActivityFeed(args.classId);
+      const teacherId = requireTeacher(ctx);
+      if (args.classId) await assertClassOwned(teacherId, args.classId);
+      return svc.getActivityFeed(teacherId, args.classId);
     },
 
     askAIAssistant: async (
@@ -192,7 +207,8 @@ export const resolvers = {
       args: { classId: string; prompt: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertClassOwned(teacherId, args.classId);
       return svc.askAIAssistant(args.classId, args.prompt);
     },
   },
@@ -201,15 +217,36 @@ export const resolvers = {
     login: async (
       _parent: unknown,
       args: { email: string; password?: string },
+      ctx: GraphQLContext,
     ) => {
-      return svc.login(args.email, args.password);
+      const parsed = LoginInput.safeParse(args);
+      if (!parsed.success) throw toGraphQLError(parsed.error);
+      const result = await svc.login(parsed.data.email, parsed.data.password);
+      setSessionCookie(ctx.response, result.token);
+      return { teacher: result.teacher };
     },
 
     signup: async (
       _parent: unknown,
       args: { name: string; email: string; school: string; password?: string },
+      ctx: GraphQLContext,
     ) => {
-      return svc.signup(args.name, args.email, args.school, args.password);
+      const parsed = SignupInput.safeParse(args);
+      if (!parsed.success) throw toGraphQLError(parsed.error);
+      const result = await svc.signup(
+        parsed.data.name,
+        parsed.data.email,
+        parsed.data.school,
+        parsed.data.password,
+      );
+      setSessionCookie(ctx.response, result.token);
+      return { teacher: result.teacher };
+    },
+
+    logout: async (_parent: unknown, _args: unknown, ctx: GraphQLContext) => {
+      await svc.revokeSession(ctx.sessionToken);
+      clearSessionCookie(ctx.response);
+      return true;
     },
 
     bulkImportStudents: async (
@@ -217,7 +254,8 @@ export const resolvers = {
       args: { classId: string; students: Array<{ name: string; preferredName?: string; rubricLevel?: number; observation?: string }> },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertClassOwned(teacherId, args.classId);
       return svc.bulkImportStudents(args.classId, args.students);
     },
 
@@ -236,7 +274,8 @@ export const resolvers = {
       args: { classId: string; name?: string; grade?: string; subject?: string; academicYear?: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertClassOwned(teacherId, args.classId);
       const row = await svc.updateClass(args.classId, args);
       return mapClass(row);
     },
@@ -246,7 +285,8 @@ export const resolvers = {
       args: { classId: string; name: string; preferredName?: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertClassOwned(teacherId, args.classId);
       const row = await svc.registerStudent(args.classId, args.name, args.preferredName);
       return mapStudent(row);
     },
@@ -256,7 +296,8 @@ export const resolvers = {
       args: { studentId: string; name?: string; preferredName?: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertStudentOwned(teacherId, args.studentId);
       const row = await svc.updateStudent(args.studentId, args);
       return mapStudent(row);
     },
@@ -266,7 +307,8 @@ export const resolvers = {
       args: { studentId: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
+      await assertStudentOwned(teacherId, args.studentId);
       return svc.removeStudent(args.studentId);
     },
 
@@ -275,9 +317,10 @@ export const resolvers = {
       args: { studentId: string; text: string; tag?: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
       const parsed = AddObservationInput.safeParse(args);
       if (!parsed.success) throw toGraphQLError(parsed.error);
+      await assertStudentOwned(teacherId, parsed.data.studentId);
       const row = await svc.addObservation(parsed.data.studentId, parsed.data.text, parsed.data.tag);
       return mapObservation(row as Record<string, unknown>);
     },
@@ -287,9 +330,10 @@ export const resolvers = {
       args: { resultId: string; level: number; feedback?: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
       const parsed = UpdateAssessmentResultInput.safeParse(args);
       if (!parsed.success) throw toGraphQLError(parsed.error);
+      await assertAssessmentResultOwned(teacherId, parsed.data.resultId);
       const row = await svc.updateAssessmentResult(parsed.data.resultId, parsed.data.level, parsed.data.feedback);
       return mapAssessmentResult(row as Record<string, unknown>);
     },
@@ -302,6 +346,7 @@ export const resolvers = {
       const teacherId = requireTeacher(ctx);
       const parsed = GenerateCommentsInput.safeParse(args);
       if (!parsed.success) throw toGraphQLError(parsed.error);
+      await assertClassPeriodOwned(teacherId, parsed.data.classId, parsed.data.periodId);
       return svc.generateComments(
         parsed.data.classId,
         parsed.data.periodId,
@@ -316,9 +361,10 @@ export const resolvers = {
       args: { commentId: string; text: string },
       ctx: GraphQLContext,
     ) => {
-      requireTeacher(ctx);
+      const teacherId = requireTeacher(ctx);
       const parsed = UpdateCommentInput.safeParse(args);
       if (!parsed.success) throw toGraphQLError(parsed.error);
+      await assertCommentOwned(teacherId, parsed.data.commentId);
       const comment = await svc.updateComment(parsed.data.commentId, parsed.data.text);
       return mapComment(comment as unknown as Record<string, unknown>);
     },
@@ -331,6 +377,7 @@ export const resolvers = {
       const teacherId = requireTeacher(ctx);
       const parsed = ApproveCommentInput.safeParse(args);
       if (!parsed.success) throw toGraphQLError(parsed.error);
+      await assertCommentOwned(teacherId, parsed.data.commentId);
       const comment = await svc.approveComment(parsed.data.commentId, parsed.data.timeTakenSeconds, teacherId);
       return mapComment(comment as unknown as Record<string, unknown>);
     },
@@ -343,6 +390,7 @@ export const resolvers = {
       const teacherId = requireTeacher(ctx);
       const parsed = RegenerateCommentInput.safeParse(args);
       if (!parsed.success) throw toGraphQLError(parsed.error);
+      await assertCommentOwned(teacherId, parsed.data.commentId);
       return svc.regenerateComment(parsed.data.commentId, teacherId, parsed.data.tone, parsed.data.length);
     },
 
@@ -354,6 +402,7 @@ export const resolvers = {
       const teacherId = requireTeacher(ctx);
       const parsed = LogManualTimeInput.safeParse(args);
       if (!parsed.success) throw toGraphQLError(parsed.error);
+      await assertStudentPeriodOwned(teacherId, parsed.data.studentId, parsed.data.periodId);
       await svc.logManualTime(teacherId, parsed.data.studentId, parsed.data.periodId, parsed.data.seconds);
       return true;
     },
@@ -377,6 +426,8 @@ export const resolvers = {
       args: { periodId: string },
       ctx: GraphQLContext,
     ) => {
+      const teacherId = requireTeacher(ctx);
+      await assertStudentPeriodOwned(teacherId, parent.id, args.periodId);
       const key = `${parent.id}:${args.periodId}`;
       const comment = await ctx.loaders.reportComments.load(key);
       if (!comment) return null;

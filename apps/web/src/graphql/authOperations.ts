@@ -11,21 +11,9 @@ export const QUERY_ME = gql`
   }
 `;
 
-export const QUERY_TEACHERS = gql`
-  query GetTeachers {
-    teachers {
-      id
-      name
-      email
-      school
-    }
-  }
-`;
-
 export const MUTATION_LOGIN = gql`
-  mutation Login($email: String!, $password: String) {
+  mutation Login($email: String!, $password: String!) {
     login(email: $email, password: $password) {
-      token
       teacher {
         id
         name
@@ -37,9 +25,8 @@ export const MUTATION_LOGIN = gql`
 `;
 
 export const MUTATION_SIGNUP = gql`
-  mutation Signup($name: String!, $email: String!, $school: String!, $password: String) {
+  mutation Signup($name: String!, $email: String!, $school: String!, $password: String!) {
     signup(name: $name, email: $email, school: $school, password: $password) {
-      token
       teacher {
         id
         name
@@ -47,6 +34,12 @@ export const MUTATION_SIGNUP = gql`
         school
       }
     }
+  }
+`;
+
+export const MUTATION_LOGOUT = gql`
+  mutation Logout {
+    logout
   }
 `;
 

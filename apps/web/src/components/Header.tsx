@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { useDispatch, useSelector } from 'react-redux';
 import { GET_TEACHER_CLASSES } from '../graphql/operations';
-import { selectClass, setActiveTab, setAiAssistantOpen, type AppTab } from '../store/uiSlice';
+import { selectClass, clearClassSelection, setActiveTab, setAiAssistantOpen, type AppTab } from '../store/uiSlice';
 import type { RootState } from '../store';
 import { useAuth } from '../context/AuthContext';
 import { CreateClassModal } from '../features/classes/CreateClassModal';
@@ -34,7 +34,7 @@ interface TeacherClassesData {
 export const Header: React.FC = () => {
   const dispatch = useDispatch();
   const { selectedClassId, selectedPeriodId, activeTab } = useSelector((s: RootState) => s.ui);
-  const { teacher, teachers, switchTeacher, logout, setIsAuthModalOpen, setAuthModalMode } = useAuth();
+  const { teacher, logout, setIsAuthModalOpen, setAuthModalMode } = useAuth();
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [createClassOpen, setCreateClassOpen] = useState(false);
@@ -43,16 +43,15 @@ export const Header: React.FC = () => {
 
   const { data } = useQuery<TeacherClassesData>(GET_TEACHER_CLASSES, {
     onCompleted: (d) => {
-      if (!selectedClassId && d.classes.length > 0) {
-        const preferredDemoClass = d.classes.find((classItem) =>
-          classItem.name.toLowerCase().includes('grade 5a') &&
-          classItem.subject.toLowerCase().includes('mathematics'),
-        );
-        const initialClass = preferredDemoClass ?? d.classes[0]!;
+      const ownedSelection = d.classes.find((classItem) => classItem.id === selectedClassId);
+      if (!ownedSelection && d.classes.length > 0) {
+        const initialClass = d.classes[0]!;
         const firstPeriod = initialClass.reportPeriods[0];
         if (firstPeriod) {
           dispatch(selectClass({ classId: initialClass.id, periodId: firstPeriod.id }));
         }
+      } else if (d.classes.length === 0) {
+        dispatch(clearClassSelection());
       }
     },
   });
@@ -85,8 +84,8 @@ export const Header: React.FC = () => {
     }
   };
 
-  const teacherDisplayName = teacher?.name ?? data?.me?.name ?? 'Ms. Anita Rao';
-  const schoolDisplayName = teacher?.school ?? data?.me?.school ?? 'Delhi International School';
+  const teacherDisplayName = teacher?.name ?? data?.me?.name ?? 'Educator';
+  const schoolDisplayName = teacher?.school ?? data?.me?.school ?? 'School workspace';
 
   const navItems: { id: AppTab; label: string; icon: React.ReactNode }[] = [
     {
@@ -289,30 +288,6 @@ export const Header: React.FC = () => {
                   <div className={styles.dropdownName}>{teacherDisplayName}</div>
                   <div className={styles.dropdownSchool}>{schoolDisplayName}</div>
                 </div>
-
-                <div className={styles.dropdownSection}>
-                  <div className={styles.dropdownSectionTitle}>Quick Switch Educator</div>
-                  {teachers.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      className={styles.dropdownItem}
-                      onClick={() => {
-                        switchTeacher(t.id);
-                        setProfileOpen(false);
-                      }}
-                    >
-                      <span>{t.name}</span>
-                      {t.id === teacher?.id && (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="3">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                <div className={styles.dropdownDivider} />
 
                 <div className={styles.dropdownSection}>
                   <button

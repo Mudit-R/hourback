@@ -16,14 +16,53 @@ export const STUDENT_TOKEN = 'STUDENT_1';
  * Replaces all occurrences of `realName` and `preferredName` in `text`
  * with STUDENT_TOKEN.
  */
-export function tokenizeName(text: string, realName: string, preferredName?: string | null): string {
+export function tokenizeName(
+  text: string,
+  realName: string,
+  preferredName?: string | null,
+  replacement = STUDENT_TOKEN,
+): string {
   let result = text;
   // Replace full name first (longer match wins)
-  result = result.replace(new RegExp(escapeRegex(realName), 'gi'), STUDENT_TOKEN);
+  result = replaceWholeName(result, realName, replacement);
   if (preferredName && preferredName !== realName) {
-    result = result.replace(new RegExp(escapeRegex(preferredName), 'gi'), STUDENT_TOKEN);
+    result = replaceWholeName(result, preferredName, replacement);
   }
   return result;
+}
+
+export interface StudentNameRecord {
+  name: string;
+  preferred_name: string | null;
+}
+
+/** Remove student names throughout all evidence, plus obvious contact details. */
+export function sanitizeStudentEvidence(
+  text: string,
+  subjectName: string,
+  subjectPreferredName: string | null,
+  classmates: StudentNameRecord[],
+): string {
+  let result = text;
+  const subjectNames = new Set([subjectName, subjectPreferredName].filter(Boolean));
+  for (const student of classmates) {
+    const isSubject = subjectNames.has(student.name) ||
+      (student.preferred_name !== null && subjectNames.has(student.preferred_name));
+    if (!isSubject) {
+      result = tokenizeName(result, student.name, student.preferred_name, '[CLASSMATE]');
+    }
+  }
+  result = tokenizeName(result, subjectName, subjectPreferredName);
+  result = result
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[EMAIL REDACTED]')
+    .replace(/(?<![\p{L}\p{N}])\+?\d[\d\s().-]{7,}\d(?![\p{L}\p{N}])/gu, '[PHONE REDACTED]');
+  return result;
+}
+
+function replaceWholeName(text: string, name: string, replacement: string): string {
+  if (!name.trim()) return text;
+  const boundaryPattern = `(?<![\\p{L}\\p{N}])${escapeRegex(name)}(?![\\p{L}\\p{N}])`;
+  return text.replace(new RegExp(boundaryPattern, 'giu'), replacement);
 }
 
 /**

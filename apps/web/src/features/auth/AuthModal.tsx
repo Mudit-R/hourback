@@ -10,7 +10,7 @@ export const AuthModal: React.FC = () => {
     setAuthModalMode,
     login,
     signup,
-    teachers,
+    teacher,
   } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -21,16 +21,6 @@ export const AuthModal: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   if (!isAuthModalOpen) return null;
-
-  const handleQuickLogin = async (teacherEmail: string) => {
-    setError(null);
-    setSubmitting(true);
-    const success = await login(teacherEmail);
-    setSubmitting(false);
-    if (!success) {
-      setError('Unable to authenticate with this educator profile.');
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +55,7 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div className={styles.overlay} onClick={() => setIsAuthModalOpen(false)}>
+    <div className={styles.overlay} onClick={() => teacher && setIsAuthModalOpen(false)}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <div className={styles.brandRow}>
@@ -81,7 +71,8 @@ export const AuthModal: React.FC = () => {
           </p>
           <button
             className={styles.closeButton}
-            onClick={() => setIsAuthModalOpen(false)}
+            onClick={() => teacher && setIsAuthModalOpen(false)}
+            disabled={!teacher}
             aria-label="Close modal"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -114,44 +105,6 @@ export const AuthModal: React.FC = () => {
         </div>
 
         <div className={styles.body}>
-          {authModalMode === 'signin' && (
-            <div className={styles.quickSection}>
-              <div className={styles.quickLabel}>1-Click Verified Educator Profiles</div>
-              <div className={styles.quickGrid}>
-                {teachers.length > 0 ? (
-                  teachers.slice(0, 3).map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      className={styles.quickCard}
-                      onClick={() => handleQuickLogin(t.email)}
-                      disabled={submitting}
-                    >
-                      <div>
-                        <div className={styles.quickCardTitle}>{t.name}</div>
-                        <div className={styles.quickCardSub}>{t.school} · {t.email}</div>
-                      </div>
-                      <span className={styles.quickCardAction}>Select &rarr;</span>
-                    </button>
-                  ))
-                ) : (
-                  <button
-                    type="button"
-                    className={styles.quickCard}
-                    onClick={() => handleQuickLogin('anita.rao@school.example.com')}
-                    disabled={submitting}
-                  >
-                    <div>
-                      <div className={styles.quickCardTitle}>Ms. Anita Rao (Lead Educator)</div>
-                      <div className={styles.quickCardSub}>Delhi International School</div>
-                    </div>
-                    <span className={styles.quickCardAction}>Select &rarr;</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
           <form className={styles.form} onSubmit={handleSubmit}>
             {error && <div className={styles.error}>{error}</div>}
 
@@ -199,10 +152,17 @@ export const AuthModal: React.FC = () => {
               <input
                 type="password"
                 className={styles.input}
-                placeholder="Enter password"
+                placeholder={authModalMode === 'signup' ? 'At least 12 characters' : 'Enter password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                minLength={authModalMode === 'signup' ? 12 : 1}
+                maxLength={128}
+                autoComplete={authModalMode === 'signup' ? 'new-password' : 'current-password'}
+                required
               />
+              {authModalMode === 'signup' && (
+                <span className={styles.label}>Use at least 12 characters. Your password is stored as a salted hash.</span>
+              )}
             </div>
 
             <button type="submit" className={styles.submitBtn} disabled={submitting}>

@@ -141,7 +141,6 @@ export const typeDefs = /* GraphQL */ `
   }
 
   type AuthPayload {
-    token: String!
     teacher: Teacher!
   }
 
@@ -163,9 +162,6 @@ export const typeDefs = /* GraphQL */ `
   type Query {
     """Current authenticated teacher profile."""
     me: Teacher
-
-    """List of registered teachers for switching / directory / demo login."""
-    teachers: [Teacher!]!
 
     """Classes taught by the current teacher."""
     classes: [Class!]!
@@ -204,11 +200,14 @@ export const typeDefs = /* GraphQL */ `
 
   # ─── Mutations ────────────────────────────────────────────────────────────
   type Mutation {
-    """Sign in with email and optional password."""
-    login(email: String!, password: String): AuthPayload!
+    """Sign in with email and password; the API sets an HttpOnly session cookie."""
+    login(email: String!, password: String!): AuthPayload!
 
     """Register a new educator account."""
-    signup(name: String!, email: String!, school: String!, password: String): AuthPayload!
+    signup(name: String!, email: String!, school: String!, password: String!): AuthPayload!
+
+    """Revoke the current session."""
+    logout: Boolean!
 
     """Bulk import student roster, initial rubric levels, and observations from CSV/spreadsheet."""
     bulkImportStudents(classId: ID!, students: [StudentImportInput!]!): Int!

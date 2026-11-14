@@ -8,7 +8,7 @@ import { SQSMessageBodySchema } from '@hourback/shared';
 import type { CommentTone, CommentLength } from '@hourback/shared';
 import { createProvider } from '@hourback/llm';
 import { buildEvidencePack } from './evidencePack';
-import { tokenizeName, rehydrateName, STUDENT_TOKEN } from './tokenizer';
+import { sanitizeStudentEvidence, rehydrateName, STUDENT_TOKEN } from './tokenizer';
 import { outcomeOfExistingDraft, settleGeneration } from './jobProgress';
 import type { GenerationTarget } from './jobProgress';
 import {
@@ -36,7 +36,9 @@ const db = knex({
   pool: { min: 1, max: 5 },
 });
 
-const llm = createProvider(process.env['LLM_PROVIDER'] ?? 'mock');
+const llm = createProvider(
+  process.env['LLM_PROVIDER'] ?? (process.env['GROQ_API_KEY'] ? 'groq' : 'mock'),
+);
 
 // ── SQS Handler ───────────────────────────────────────────────────────────────
 export const handler: SQSHandler = async (event: SQSEvent) => {
@@ -92,7 +94,7 @@ export async function processMessageData(data: GenerationTarget & {
     db('students as s')
       .join('classes as c', 's.class_id', 'c.id')
       .where('s.id', studentId)
-      .select('s.name', 's.preferred_name', 'c.subject', 'c.grade')
+      .select('s.name', 's.preferred_name', 's.class_id', 'c.subject', 'c.grade')
       .first(),
     db('report_periods').where({ id: periodId }).select('name').first(),
     db('assessment_results as ar')
@@ -109,18 +111,30 @@ export async function processMessageData(data: GenerationTarget & {
     throw new Error(`Data not found: student=${studentId} period=${periodId}`);
   }
 
-  // ── 4. Tokenize ───────────────────────────────────────────────────────────
-  // Evidence text doesn't contain name usually, but we tokenize just in case
-  const tokenizedObs = observations.map((o: { id: string; text: string; tag: string | null; created_at: Date }) => ({
+  // ── 4. Remove student identifiers from every free-text evidence field ─────
+  const classmates = await db('students')
+    .where({ class_id: student.class_id })
+    .select('name', 'preferred_name');
+  const sanitize = (text: string) => sanitizeStudentEvidence(
+    text,
+    student.name as string,
+    student.preferred_name as string | null,
+    classmates as Array<{ name: string; preferred_name: string | null }>,
+  );
+  const sanitizedObservations = observations.map((o: { id: string; text: string; tag: string | null; created_at: Date }) => ({
     ...o,
-    text: tokenizeName(o.text, student.name as string, student.preferred_name as string | null),
+    text: sanitize(o.text),
+  }));
+  const sanitizedAssessmentResults = assessmentResults.map((result: { feedback: string | null }) => ({
+    ...result,
+    feedback: result.feedback ? sanitize(result.feedback) : null,
   }));
 
-  // ── 5. Build evidence pack ────────────────────────────────────────────────
+  // ── 5. Build evidence pack from sanitized data ────────────────────────────
   const pack = buildEvidencePack({
     studentToken: STUDENT_TOKEN,
-    assessmentResults: assessmentResults as Parameters<typeof buildEvidencePack>[0]['assessmentResults'],
-    observations: tokenizedObs as Parameters<typeof buildEvidencePack>[0]['observations'],
+    assessmentResults: sanitizedAssessmentResults as Parameters<typeof buildEvidencePack>[0]['assessmentResults'],
+    observations: sanitizedObservations as Parameters<typeof buildEvidencePack>[0]['observations'],
     period: period as { name: string },
     classData: { subject: student.subject as string, grade: student.grade as string },
     tone: tone as CommentTone,

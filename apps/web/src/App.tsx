@@ -136,7 +136,15 @@ export const App: React.FC = () => {
           )}
         </>
       ) : (
-        <div style={{ padding: 32, color: 'var(--color-text-muted)' }}>Loading classroom...</div>
+        <main style={{ maxWidth: 680, margin: '72px auto', padding: 32, textAlign: 'center' }}>
+          <h1 style={{ color: 'var(--color-text)' }}>Your workspace is ready</h1>
+          <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
+            Create a classroom with its own roster and reporting period to start recording evidence and drafting comments.
+          </p>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
+            Choose <strong>New Class</strong> in the header to set up your first classroom.
+          </p>
+        </main>
       )}
 
       {/* HourBack AI Partner Slide-over Drawer */}

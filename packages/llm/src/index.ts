@@ -15,6 +15,7 @@ export interface LLMProvider {
 // ── Provider Factory ──────────────────────────────────────────────────────────
 export { GeminiProvider } from './providers/gemini';
 export { AnthropicProvider } from './providers/anthropic';
+export { GroqProvider } from './providers/groq';
 export { MockProvider } from './providers/mock';
 
 export function createProvider(name: string): LLMProvider {
@@ -25,10 +26,13 @@ export function createProvider(name: string): LLMProvider {
     case 'anthropic':
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       return new (require('./providers/anthropic').AnthropicProvider)();
+    case 'groq':
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      return new (require('./providers/groq').GroqProvider)();
     case 'mock':
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       return new (require('./providers/mock').MockProvider)();
     default:
-      throw new Error(`Unknown LLM provider: "${name}". Set LLM_PROVIDER to gemini | anthropic | mock`);
+      throw new Error(`Unknown LLM provider: "${name}". Set LLM_PROVIDER to groq | gemini | anthropic | mock`);
   }
 }

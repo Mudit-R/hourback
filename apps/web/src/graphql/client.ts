@@ -1,5 +1,4 @@
 import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
@@ -18,20 +17,11 @@ const graphqlUri =
 
 const httpLink = createHttpLink({
   uri: graphqlUri,
-});
-
-const authLink = setContext((_, { headers }) => {
-  const teacherId = typeof window !== 'undefined' ? localStorage.getItem('teacherId') : null;
-  return {
-    headers: {
-      ...headers,
-      ...(teacherId ? { 'x-teacher-id': teacherId } : {}),
-    },
-  };
+  credentials: 'include',
 });
 
 export const apolloClient = new ApolloClient({
-  link: from([errorLink, authLink, httpLink]),
+  link: from([errorLink, httpLink]),
   cache: new InMemoryCache({
     typePolicies: {
       Student: { keyFields: ['id'] },

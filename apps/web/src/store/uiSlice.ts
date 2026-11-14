@@ -34,6 +34,13 @@ export const uiSlice = createSlice({
       state.selectedPeriodId = action.payload.periodId;
       state.selectedStudentId = null;
     },
+    clearClassSelection: (state) => {
+      state.selectedClassId = null;
+      state.selectedPeriodId = null;
+      state.selectedStudentId = null;
+      state.activeJobId = null;
+      state.aiAssistantOpen = false;
+    },
     setActiveJob: (state, action: PayloadAction<string | null>) => {
       state.activeJobId = action.payload;
     },
@@ -52,6 +59,7 @@ export const uiSlice = createSlice({
 export const {
   selectStudent,
   selectClass,
+  clearClassSelection,
   setActiveJob,
   setActiveTab,
   setAiAssistantOpen,

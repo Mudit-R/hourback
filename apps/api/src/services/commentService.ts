@@ -1,5 +1,6 @@
 import db from '../db/client';
 import { v4 as uuidv4 } from 'uuid';
+import { GraphQLError } from 'graphql';
 import {
   SQSClient,
   SendMessageCommand,
@@ -16,6 +17,13 @@ import { SQSMessageBodySchema } from '@hourback/shared';
 import { processMessageData, recordGenerationFailure } from '@hourback/worker';
 import { generationPubSubTopic, publishGenerationMessage } from './generationPubSub';
 import type { Topic } from '@google-cloud/pubsub';
+import {
+  createSessionToken,
+  hashPassword,
+  hashSessionToken,
+  sessionExpiry,
+  verifyPassword,
+} from '../auth/session';
 
 const awsAccessKeyId = process.env['AWS_ACCESS_KEY_ID'];
 const awsSecretAccessKey = process.env['AWS_SECRET_ACCESS_KEY'];
@@ -558,111 +566,79 @@ export async function askAIAssistant(classId: string, prompt: string) {
 }
 
 // ── Authentication & Teacher Management ───────────────────────────────────────
-export async function getTeachers() {
-  return db('teachers').orderBy('name', 'asc').select('*');
+export async function login(email: string, password: string) {
+  const teacher = await db('teachers')
+    .whereRaw('LOWER(email) = ?', [email.trim().toLowerCase()])
+    .first();
+  const passwordMatches = await verifyPassword(password, teacher?.password_hash);
+  if (!teacher || !passwordMatches) {
+    throw new GraphQLError('Invalid email or password', {
+      extensions: { code: 'UNAUTHENTICATED' },
+    });
+  }
+
+  const token = createSessionToken();
+  const expiresAt = sessionExpiry();
+  await db.transaction(async (trx) => {
+    await trx('auth_sessions').where({ teacher_id: teacher.id }).andWhere('expires_at', '<=', db.fn.now()).delete();
+    await trx('auth_sessions').insert({
+      token_hash: hashSessionToken(token),
+      teacher_id: teacher.id,
+      expires_at: expiresAt,
+    });
+  });
+
+  const { password_hash: _passwordHash, ...safeTeacher } = teacher;
+  return { token, teacher: safeTeacher };
 }
 
-export async function login(email: string, _password?: string) {
-  let teacher = await db('teachers').whereRaw('LOWER(email) = ?', [email.trim().toLowerCase()]).first();
-  if (!teacher) {
-    // If demo email or unknown educator, create on the fly so login never gets stuck
-    const namePart = email.split('@')[0] ?? 'Educator';
-    const formattedName = namePart
-      .split('.')
-      .map(s => s.charAt(0).toUpperCase() + s.slice(1))
-      .join(' ');
-    const id = uuidv4();
-    await db('teachers').insert({
-      id,
-      name: formattedName.length > 2 ? formattedName : 'Educator',
-      email: email.trim().toLowerCase(),
-      school: 'Delhi International School',
+export async function signup(name: string, email: string, school: string, password: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const passwordHash = await hashPassword(password);
+  const token = createSessionToken();
+
+  try {
+    const teacher = await db.transaction(async (trx) => {
+      const existing = await trx('teachers').whereRaw('LOWER(email) = ?', [normalizedEmail]).first('id');
+      if (existing) {
+        throw new GraphQLError('An account with this email already exists', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+
+      const [created] = await trx('teachers')
+        .insert({
+          id: uuidv4(),
+          name: name.trim(),
+          email: normalizedEmail,
+          school: school.trim(),
+          password_hash: passwordHash,
+        })
+        .returning(['id', 'name', 'email', 'school']);
+
+      await trx('auth_sessions').insert({
+        token_hash: hashSessionToken(token),
+        teacher_id: created.id,
+        expires_at: sessionExpiry(),
+      });
+      return created;
     });
-    teacher = await db('teachers').where({ id }).first();
+
+    return { token, teacher };
+  } catch (error) {
+    if (error instanceof GraphQLError) throw error;
+    if ((error as { code?: string })?.code === '23505') {
+      throw new GraphQLError('An account with this email already exists', {
+        extensions: { code: 'BAD_USER_INPUT' },
+      });
+    }
+    throw error;
   }
-  return {
-    token: `tkn_${teacher.id}`,
-    teacher,
-  };
 }
 
-export async function signup(name: string, email: string, school: string, _password?: string) {
-  let teacher = await db('teachers').whereRaw('LOWER(email) = ?', [email.trim().toLowerCase()]).first();
-  if (!teacher) {
-    const id = uuidv4();
-    await db('teachers').insert({
-      id,
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      school: school.trim() || 'International Academy',
-    });
-    teacher = await db('teachers').where({ id }).first();
-
-    // Seed an initial demo class for new teacher
-    const classId = uuidv4();
-    await db('classes').insert({
-      id: classId,
-      teacher_id: id,
-      name: 'Grade 5 — Inquiry & Mathematics',
-      grade: 'Grade 5',
-      subject: 'Mathematics',
-      academic_year: '2024-2025',
-    });
-
-    const unitId = uuidv4();
-    await db('units').insert({
-      id: unitId,
-      class_id: classId,
-      title: 'Unit 1: Patterns & Relationships',
-    });
-
-    const assessmentId = uuidv4();
-    await db('assessments').insert({
-      id: assessmentId,
-      unit_id: unitId,
-      title: 'Semester Assessment Rubric',
-      type: 'criteria',
-    });
-
-    const crit1 = uuidv4();
-    const crit2 = uuidv4();
-    await db('criteria').insert([
-      { id: crit1, assessment_id: assessmentId, name: 'Conceptual Understanding', max_level: 8, sort_order: 0 },
-      { id: crit2, assessment_id: assessmentId, name: 'Problem-Solving Strategies', max_level: 8, sort_order: 1 },
-    ]);
-
-    await db('report_periods').insert({
-      id: uuidv4(),
-      class_id: classId,
-      name: 'Semester 1 2024-2025',
-      start_date: '2024-09-01',
-      end_date: '2025-01-31',
-    });
-
-    // Add 3 sample students
-    const s1 = uuidv4();
-    const s2 = uuidv4();
-    await db('students').insert([
-      { id: s1, class_id: classId, name: 'Aria Montgomery', preferred_name: 'Aria' },
-      { id: s2, class_id: classId, name: 'Lucas Scott', preferred_name: 'Lucas' },
-    ]);
-
-    await db('assessment_results').insert([
-      { id: uuidv4(), student_id: s1, criterion_id: crit1, level: 6, feedback: 'Strong conceptual grasp.' },
-      { id: uuidv4(), student_id: s1, criterion_id: crit2, level: 5, feedback: 'Applies methods independently.' },
-      { id: uuidv4(), student_id: s2, criterion_id: crit1, level: 4, feedback: 'Meets expectations.' },
-      { id: uuidv4(), student_id: s2, criterion_id: crit2, level: 4, feedback: 'Developing consistency.' },
-    ]);
-
-    await db('observations').insert([
-      { id: uuidv4(), student_id: s1, text: 'Exhibited strong leadership in collaborative tasks.', tag: 'collaboration' },
-      { id: uuidv4(), student_id: s2, text: 'Active inquirer during guided mathematical clinics.', tag: 'mathematics' },
-    ]);
-  }
-  return {
-    token: `tkn_${teacher.id}`,
-    teacher,
-  };
+export async function revokeSession(token: string | undefined): Promise<void> {
+  if (!token) return;
+  await db('auth_sessions').where({ token_hash: hashSessionToken(token) }).delete();
 }
 
 // ── Class Registration & Management ───────────────────────────────────────────
@@ -788,7 +764,7 @@ export async function removeStudent(studentId: string) {
 }
 
 // ── Activity & Audit Feed ─────────────────────────────────────────────────────
-export async function getActivityFeed(classId?: string) {
+export async function getActivityFeed(teacherId: string, classId?: string) {
   const items: Array<{
     id: string;
     type: string;
@@ -801,7 +777,9 @@ export async function getActivityFeed(classId?: string) {
   // Recent observations
   let obsQuery = db('observations as o')
     .join('students as s', 'o.student_id', 's.id')
+    .join('classes as c', 'c.id', 's.class_id')
     .select('o.id', 'o.text', 'o.created_at', 's.name as student_name', 's.class_id')
+    .where('c.teacher_id', teacherId)
     .orderBy('o.created_at', 'desc')
     .limit(10);
   if (classId) obsQuery = obsQuery.where('s.class_id', classId);
@@ -821,7 +799,9 @@ export async function getActivityFeed(classId?: string) {
   // Recent comments
   let comQuery = db('report_comments as rc')
     .join('students as s', 'rc.student_id', 's.id')
+    .join('classes as c', 'c.id', 's.class_id')
     .select('rc.id', 'rc.status', 'rc.updated_at', 'rc.created_at', 's.name as student_name', 's.class_id')
+    .where('c.teacher_id', teacherId)
     .orderBy('rc.updated_at', 'desc')
     .limit(10);
   if (classId) comQuery = comQuery.where('s.class_id', classId);
@@ -839,9 +819,11 @@ export async function getActivityFeed(classId?: string) {
   }
 
   // Recent students
-  let stuQuery = db('students')
-    .select('id', 'name', 'created_at', 'class_id')
-    .orderBy('created_at', 'desc')
+  let stuQuery = db('students as s')
+    .join('classes as c', 'c.id', 's.class_id')
+    .select('s.id', 's.name', 's.created_at', 's.class_id')
+    .where('c.teacher_id', teacherId)
+    .orderBy('s.created_at', 'desc')
     .limit(5);
   if (classId) stuQuery = stuQuery.where('class_id', classId);
   const students = await stuQuery;

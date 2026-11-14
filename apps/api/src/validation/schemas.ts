@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+export const LoginInput = z.object({
+  email: z.string().trim().email().max(255),
+  password: z.string().min(1).max(128),
+});
+
+export const SignupInput = z.object({
+  name: z.string().trim().min(2).max(255),
+  email: z.string().trim().email().max(255),
+  school: z.string().trim().min(2).max(255),
+  password: z.string().min(12, 'Password must be at least 12 characters').max(128),
+});
+
 export const AddObservationInput = z.object({
   studentId: z.string().uuid('Invalid student ID'),
   text: z.string().min(10, 'Observation must be at least 10 characters').max(2000),

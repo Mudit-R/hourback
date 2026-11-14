@@ -200,7 +200,8 @@ npm install
 ### 3. Environment Configuration
 ```bash
 cp .env.example .env
-# Configure DATABASE_URL and GEMINI_API_KEY, or set LLM_PROVIDER=mock.
+# Configure DATABASE_URL and GROQ_API_KEY (LLM_PROVIDER=groq), or set
+# LLM_PROVIDER=mock for deterministic local development without provider calls.
 ```
 
 ### 4. Database Setup & Seeding
